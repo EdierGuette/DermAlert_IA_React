@@ -1,0 +1,9 @@
+﻿Django==4.2.7
+tensorflow==2.15.0
+keras==2.15.0
+Pillow>=9.0.0
+numpy>=1.23.0,<2.0.0
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+psycopg2-binary==2.9.7
+python-dotenv==1.0.0
