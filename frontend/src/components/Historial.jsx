@@ -203,6 +203,15 @@ function Historial({ onViewChange }) {
         window.showDiagnosticoInResults = event.detail.showDiagnosticoInResults;
         errorCapture.logAction('Historial', 'FUNCTION_SAVED', 'Función showDiagnosticoInResults guardada desde evento');
       }
+      // También guardar las nuevas funciones de limpieza
+      if (event.detail?.clearSelectedDiagnostico) {
+        window.clearSelectedDiagnostico = event.detail.clearSelectedDiagnostico;
+        errorCapture.logAction('Historial', 'CLEAR_FUNCTION_SAVED', 'Función clearSelectedDiagnostico guardada');
+      }
+      if (event.detail?.reloadAggregatedCharts) {
+        window.reloadAggregatedCharts = event.detail.reloadAggregatedCharts;
+        errorCapture.logAction('Historial', 'RELOAD_FUNCTION_SAVED', 'Función reloadAggregatedCharts guardada');
+      }
     };
     
     window.addEventListener('resultadosReady', handleResultadosReady);
@@ -218,7 +227,6 @@ function Historial({ onViewChange }) {
         setResultadosReady(true);
         clearInterval(checkInterval);
       } else if (checkCount <= 20) {
-        // Solo log cada 5 intentos para no saturar
         if (checkCount % 5 === 0) {
           errorCapture.logAction('Historial', 'WAITING_FUNCTION', `Esperando función... intento ${checkCount}`);
         }
@@ -372,6 +380,23 @@ function Historial({ onViewChange }) {
             diagnostico_id: id,
             duration_ms: duration
           });
+          
+          // ✅ LIMPIAR EL DIAGNÓSTICO SELECCIONADO EN RESULTADOS
+          if (typeof window.clearSelectedDiagnostico === 'function') {
+            window.clearSelectedDiagnostico();
+            errorCapture.logAction('Historial', 'CLEAR_RESULTS', 'Diagnóstico limpiado de la vista Resultados');
+          } else {
+            errorCapture.logWarning('Historial', 'CLEAR_RESULTS_FAILED', 'No se pudo limpiar resultados - función no disponible');
+          }
+          
+          // ✅ RECARGAR GRÁFICAS AGREGADAS EN RESULTADOS
+          if (typeof window.reloadAggregatedCharts === 'function') {
+            window.reloadAggregatedCharts();
+            errorCapture.logAction('Historial', 'RELOAD_STATS', 'Estadísticas recargadas en Resultados');
+          } else {
+            errorCapture.logWarning('Historial', 'RELOAD_STATS_FAILED', 'No se pudo recargar estadísticas - función no disponible');
+          }
+          
           Swal.fire({
             title: '¡Eliminado!',
             text: 'El diagnóstico ha sido eliminado del historial.',

@@ -9,6 +9,83 @@ import '../css/resultados/estadisticas.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+const getRiskText = (categoria) => {
+  switch (categoria) {
+    case 'Maligno': return '🔴 Alto';
+    case 'Premaligno': return '🟠 Moderado';
+    case 'Benigno': return '🟢 Bajo';
+    default: return '⚪ No determinado';
+  }
+};
+
+const getCie10CodeFromDiagnostico = (diagnostico) => {
+  const cie10Mapping = {
+    'Benigno General': 'D23.9',
+    'Nevo Lunar': 'D22.9',
+    'Dermatofibroma': 'D23.9',
+    'Queratosis Seborreica': 'L82',
+    'Melanoma': 'C43.9',
+    'Carcinoma Basocelular': 'C44.9',
+    'Carcinoma Escamocelular': 'C44.9',
+    'Premaligno': 'L57.0',
+    'Desconocido': 'R22.9'
+  };
+  return diagnostico.codigo_cie10 || cie10Mapping[diagnostico.clase] || 'R22.9';
+};
+
+const getInterpretationText = (className, categoria) => {
+  const interpretaciones = {
+    'Benigno General': 'Características típicas de una lesión benigna general, sin rasgos de malignidad.',
+    'Nevo Lunar': 'Lunar común (nevo melanocítico) de aspecto benigno.',
+    'Dermatofibroma': 'Nódulo benigno frecuente en extremidades, de consistencia firme.',
+    'Queratosis Seborreica': 'Crecimiento benigno de la capa superficial de la piel, muy común en adultos.',
+    'Melanoma': 'Posible melanoma: células pigmentadas con atipia, bordes irregulares y coloración heterogénea.',
+    'Carcinoma Basocelular': 'Posible carcinoma basocelular: proliferación de células basales con bordes perlados y telangiectasias.',
+    'Carcinoma Escamocelular': 'Posible carcinoma escamocelular: queratinización anormal, células escamosas atípicas.',
+    'Premaligno': 'Cambios celulares sugestivos de queratosis actínica o displasia leve/moderada.',
+    'Desconocido': 'El modelo no pudo clasificar la imagen con suficiente certeza.'
+  };
+  return interpretaciones[className] || `Clasificación: ${className} (${categoria}). Revisión profesional recomendada.`;
+};
+
+const getRecommendationText = (className, categoria) => {
+  const recomendaciones = {
+    'Benigno General': '✅ Es una lesión benigna general. No requiere tratamiento, pero mantén vigilancia y realiza autoexámenes periódicos.',
+    'Nevo Lunar': '✅ Lunar benigno. Control anual con dermatólogo si hay cambios en tamaño, color o forma. Evita exposición solar excesiva.',
+    'Dermatofibroma': '✅ Lesión benigna común. No presenta riesgo maligno. Si te molesta estéticamente, consulta a un dermatólogo para su extirpación.',
+    'Queratosis Seborreica': '✅ Lesión benigna muy frecuente en adultos mayores. Sin riesgo de cáncer. Puede ser retirada por razones estéticas.',
+    'Melanoma': '⚠️ ALTA SOSPECHA DE MELANOMA. Debes acudir URGENTEMENTE a un dermatólogo para biopsia y tratamiento temprano.',
+    'Carcinoma Basocelular': '⚠️ Sospecha de Carcinoma Basocelular. Es el cáncer de piel más frecuente y de crecimiento lento. Requiere evaluación dermatológica y probable extirpación.',
+    'Carcinoma Escamocelular': '⚠️ Sospecha de Carcinoma Escamocelular. Puede ser agresivo localmente. Consulta con un dermatólogo cuanto antes.',
+    'Premaligno': '🔶 Lesión premaligna (queratosis actínica o displasia). Se recomienda tratamiento tópico o crioterapia para prevenir progresión a cáncer.',
+    'Desconocido': '❓ Resultado no concluyente. Repite el análisis con una imagen más clara o consulta a un dermatólogo para evaluación profesional.'
+  };
+  return recomendaciones[className] || `Resultado: ${className} (${categoria}). Consulta con un especialista para una evaluación más precisa.`;
+};
+
+// Agrupar probabilidades de 9 clases en 4 categorías
+const aggregateProbs = (probs) => {
+  let benignoSum = 0, malignoSum = 0, premaligno = 0, desconocido = 0;
+  for (let i = 0; i <= 3; i++) benignoSum += probs[i];
+  for (let i = 4; i <= 6; i++) malignoSum += probs[i];
+  premaligno = probs[7];
+  desconocido = probs[8];
+  return {
+    'Benigno': Math.round(benignoSum * 10000) / 100,
+    'Maligno': Math.round(malignoSum * 10000) / 100,
+    'Premaligno': Math.round(premaligno * 10000) / 100,
+    'Desconocido': Math.round(desconocido * 10000) / 100
+  };
+};
+
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
+
 function Resultados() {
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [selectedDiagnostico, setSelectedDiagnostico] = useState(null);
@@ -32,79 +109,6 @@ function Resultados() {
       destroyDiagnosticoCharts();
     };
   }, []);
-
-  // Función para obtener el texto de riesgo según categoría
-  const getRiskText = (categoria) => {
-    switch (categoria) {
-      case 'Maligno': return '🔴 Alto';
-      case 'Premaligno': return '🟠 Moderado';
-      case 'Benigno': return '🟢 Bajo';
-      default: return '⚪ No determinado';
-    }
-  };
-
-  // Función para obtener código CIE-10
-  const getCie10CodeFromDiagnostico = (diagnostico) => {
-    const cie10Mapping = {
-      'Benigno General': 'D23.9',
-      'Nevo Lunar': 'D22.9',
-      'Dermatofibroma': 'D23.9',
-      'Queratosis Seborreica': 'L82',
-      'Melanoma': 'C43.9',
-      'Carcinoma Basocelular': 'C44.9',
-      'Carcinoma Escamocelular': 'C44.9',
-      'Premaligno': 'L57.0',
-      'Desconocido': 'R22.9'
-    };
-    return diagnostico.codigo_cie10 || cie10Mapping[diagnostico.clase] || 'R22.9';
-  };
-
-  // Función para obtener interpretación según clase
-  const getInterpretationText = (className, categoria) => {
-    const interpretaciones = {
-      'Benigno General': 'Características típicas de una lesión benigna general, sin rasgos de malignidad.',
-      'Nevo Lunar': 'Lunar común (nevo melanocítico) de aspecto benigno.',
-      'Dermatofibroma': 'Nódulo benigno frecuente en extremidades, de consistencia firme.',
-      'Queratosis Seborreica': 'Crecimiento benigno de la capa superficial de la piel, muy común en adultos.',
-      'Melanoma': 'Posible melanoma: células pigmentadas con atipia, bordes irregulares y coloración heterogénea.',
-      'Carcinoma Basocelular': 'Posible carcinoma basocelular: proliferación de células basales con bordes perlados y telangiectasias.',
-      'Carcinoma Escamocelular': 'Posible carcinoma escamocelular: queratinización anormal, células escamosas atípicas.',
-      'Premaligno': 'Cambios celulares sugestivos de queratosis actínica o displasia leve/moderada.',
-      'Desconocido': 'El modelo no pudo clasificar la imagen con suficiente certeza.'
-    };
-    return interpretaciones[className] || `Clasificación: ${className} (${categoria}). Revisión profesional recomendada.`;
-  };
-
-  // Función para obtener recomendación según clase
-  const getRecommendationText = (className, categoria) => {
-    const recomendaciones = {
-      'Benigno General': '✅ Es una lesión benigna general. No requiere tratamiento, pero mantén vigilancia y realiza autoexámenes periódicos.',
-      'Nevo Lunar': '✅ Lunar benigno. Control anual con dermatólogo si hay cambios en tamaño, color o forma. Evita exposición solar excesiva.',
-      'Dermatofibroma': '✅ Lesión benigna común. No presenta riesgo maligno. Si te molesta estéticamente, consulta a un dermatólogo para su extirpación.',
-      'Queratosis Seborreica': '✅ Lesión benigna muy frecuente en adultos mayores. Sin riesgo de cáncer. Puede ser retirada por razones estéticas.',
-      'Melanoma': '⚠️ ALTA SOSPECHA DE MELANOMA. Debes acudir URGENTEMENTE a un dermatólogo para biopsia y tratamiento temprano.',
-      'Carcinoma Basocelular': '⚠️ Sospecha de Carcinoma Basocelular. Es el cáncer de piel más frecuente y de crecimiento lento. Requiere evaluación dermatológica y probable extirpación.',
-      'Carcinoma Escamocelular': '⚠️ Sospecha de Carcinoma Escamocelular. Puede ser agresivo localmente. Consulta con un dermatólogo cuanto antes.',
-      'Premaligno': '🔶 Lesión premaligna (queratosis actínica o displasia). Se recomienda tratamiento tópico o crioterapia para prevenir progresión a cáncer.',
-      'Desconocido': '❓ Resultado no concluyente. Repite el análisis con una imagen más clara o consulta a un dermatólogo para evaluación profesional.'
-    };
-    return recomendaciones[className] || `Resultado: ${className} (${categoria}). Consulta con un especialista para una evaluación más precisa.`;
-  };
-
-  // Agrupar probabilidades de 9 clases en 4 categorías
-  const aggregateProbs = (probs) => {
-    let benignoSum = 0, malignoSum = 0, premaligno = 0, desconocido = 0;
-    for (let i = 0; i <= 3; i++) benignoSum += probs[i];
-    for (let i = 4; i <= 6; i++) malignoSum += probs[i];
-    premaligno = probs[7];
-    desconocido = probs[8];
-    return {
-      'Benigno': Math.round(benignoSum * 10000) / 100,
-      'Maligno': Math.round(malignoSum * 10000) / 100,
-      'Premaligno': Math.round(premaligno * 10000) / 100,
-      'Desconocido': Math.round(desconocido * 10000) / 100
-    };
-  };
 
   // Destruir gráficas existentes
   const destroyDiagnosticoCharts = () => {
@@ -248,6 +252,19 @@ function Resultados() {
       }
       drawDiagnosticoCharts(diagnosticoConImagen);
     }, 200);
+  }, []);
+
+  // Limpiar diagnóstico seleccionado
+  const clearSelectedDiagnostico = useCallback(() => {
+    errorCapture.logAction('Resultados', 'CLEAR_SELECTED', 'Limpiando diagnóstico seleccionado');
+    setSelectedDiagnostico(null);
+    destroyDiagnosticoCharts();
+  }, []);
+
+  // Recargar gráficas agregadas
+  const reloadAggregatedCharts = useCallback(() => {
+    errorCapture.logAction('Resultados', 'RELOAD_AGGREGATED', 'Recargando gráficas agregadas');
+    drawAggregatedCharts();
   }, []);
 
   // Dibujar gráficas agregadas (estadísticas generales)
@@ -415,39 +432,38 @@ function Resultados() {
 
   // Registrar función global y evento
   useEffect(() => {
-    errorCapture.logAction('Resultados', 'REGISTER_GLOBAL_FUNCTION', 'Registrando window.showDiagnosticoInResults');
+    errorCapture.logAction('Resultados', 'REGISTER_GLOBAL_FUNCTION', 'Registrando funciones globales');
     
-    // Registrar función global
     window.showDiagnosticoInResults = showDiagnosticoInResults;
+    window.clearSelectedDiagnostico = clearSelectedDiagnostico;
+    window.reloadAggregatedCharts = reloadAggregatedCharts;
     
-    errorCapture.logAction('Resultados', 'FUNCTION_REGISTERED', 'Función registrada correctamente', {
-      type: typeof window.showDiagnosticoInResults
-    });
+    errorCapture.logAction('Resultados', 'FUNCTION_REGISTERED', 'Funciones registradas correctamente');
     
-    // Disparar evento personalizado para notificar que el componente está listo
-    errorCapture.logAction('Resultados', 'DISPATCH_EVENT', 'Disparando evento resultadosReady');
     const event = new CustomEvent('resultadosReady', { 
       detail: { 
         showDiagnosticoInResults,
+        clearSelectedDiagnostico,
+        reloadAggregatedCharts,
         timestamp: Date.now()
       } 
     });
     window.dispatchEvent(event);
     
-    // Cargar gráficas agregadas
     drawAggregatedCharts();
     
     return () => {
       errorCapture.logAction('Resultados', 'CLEANUP', 'Limpiando recursos y función global');
       delete window.showDiagnosticoInResults;
+      delete window.clearSelectedDiagnostico;
+      delete window.reloadAggregatedCharts;
       if (classDistChart) classDistChart.destroy();
       if (confidenceLineChart) confidenceLineChart.destroy();
       destroyDiagnosticoCharts();
     };
-  }, [showDiagnosticoInResults]);
+  }, [showDiagnosticoInResults, clearSelectedDiagnostico, reloadAggregatedCharts]);
 
   if (loading) {
-    errorCapture.logAction('Resultados', 'LOADING_STATE', 'Mostrando estado de carga');
     return (
       <section className="view" id="results">
         <h2 className="results-title">Resultados Detallados</h2>
@@ -456,16 +472,10 @@ function Resultados() {
     );
   }
 
-  errorCapture.logAction('Resultados', 'RENDER', 'Renderizando componente', {
-    hasSelectedDiagnostico: !!selectedDiagnostico,
-    totalDiagnosticos: diagnosticos.length
-  });
-  
   return (
     <section className="view" id="results">
       <h2 className="results-title">Resultados Detallados</h2>
 
-      {/* Tarjeta de resultados (visible solo cuando hay un diagnóstico seleccionado) */}
       <div id="resultCard" className={`result-card ${selectedDiagnostico ? '' : 'hidden'}`}>
         <div className="card-header">
           <h3>Resultados del Examen</h3>
@@ -521,10 +531,7 @@ function Resultados() {
                     alt="Imagen del diagnóstico" 
                     className="imagen-preview-result" 
                     onError={(e) => {
-                      errorCapture.logError('Resultados', 'IMAGE_LOAD_ERROR', 'Error cargando imagen', {
-                        diagnostico_id: selectedDiagnostico?.id,
-                        src_length: selectedDiagnostico?.imagen?.length
-                      });
+                      errorCapture.logError('Resultados', 'IMAGE_LOAD_ERROR', 'Error cargando imagen');
                       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="2" y="2" width="20" height="20" rx="2.18"%3E%3C/rect%3E%3Cpath d="M8 2v20M16 2v20M2 8h20M2 16h20"%3E%3C/path%3E%3C/svg%3E';
                     }}
                   />
