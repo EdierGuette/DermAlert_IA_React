@@ -64,7 +64,6 @@ yarn-error.log*
 
 # ========== ARCHIVOS GRANDES ==========
 # Modelo de IA (si es muy grande, >100MB)
-*.h5
 *.hdf5
 *.ckpt
 *.pb
