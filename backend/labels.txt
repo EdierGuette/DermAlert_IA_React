@@ -1,0 +1,9 @@
+0 Benigno General
+1 Nevo Lunar
+2 Dermatofibroma
+3 Queratosis Seborreica
+4 Melanoma
+5 Carcinoma Basocelular
+6 Carcinoma Escamocelular
+7 Premaligno
+8 Desconocido
