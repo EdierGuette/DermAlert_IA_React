@@ -1,0 +1,193 @@
+/* diagnostico/camara.css - Estilos del modal de cámara con mejoras responsive */
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.camera-modal.hidden {
+  display: none;
+}
+
+.camera-modal-content {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 0;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--soft);
+  border-bottom: 2px solid rgba(47, 122, 122, 0.1);
+}
+
+.camera-header h3 {
+  color: var(--accent);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-camera-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.close-camera-btn:hover {
+  background: rgba(217, 83, 79, 0.1);
+  color: #d9534f;
+}
+
+.camera-preview {
+  width: 100%;
+  height: 350px;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+
+#cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#cameraCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--soft);
+  border-top: 2px solid rgba(47, 122, 122, 0.1);
+}
+
+.capture-btn,
+.close-camera-controls-btn {
+  flex: 1;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  min-height: 52px;
+}
+
+.capture-btn {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.2);
+}
+
+.capture-btn:hover {
+  background: #266b6b;
+  box-shadow: 0 6px 16px rgba(47, 122, 122, 0.3);
+  transform: translateY(-2px);
+}
+
+.close-camera-controls-btn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(47, 122, 122, 0.2);
+}
+
+.close-camera-controls-btn:hover {
+  background: var(--soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.camera-controls ion-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .camera-modal-content {
+    width: 95%;
+    max-width: 450px;
+  }
+  .camera-preview {
+    height: 300px;
+  }
+}
+
+@media (max-width: 600px) {
+  .camera-modal-content {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .camera-header {
+    padding: 15px 20px;
+  }
+  .camera-header h3 {
+    font-size: 16px;
+  }
+  .close-camera-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .camera-preview {
+    flex: 1;
+    height: auto;
+  }
+  .camera-controls {
+    flex-direction: column;
+    padding: 15px;
+    gap: 8px;
+  }
+  .capture-btn,
+  .close-camera-controls-btn {
+    min-height: 48px;
+    font-size: 15px;
+    padding: 12px;
+  }
+  .camera-controls ion-icon {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,465 @@
+/* estadisticas.css - Versión con animaciones y gráficos espectaculares */
+
+/* Variables globales para colores de categorías (usadas en JS) */
+:root {
+    --color-maligno: #dc3545;
+    --color-benigno: #28a745;
+    --color-premaligno: #ff8c00;   /* Naranja para Premaligno */
+    --color-desconocido: #ffc107;
+}
+
+.estadisticas {
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f5 100%);
+    scroll-margin-top: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.estadisticas::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(47,122,122,0.03) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.estadisticas-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.estadisticas-title {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 15px;
+    animation: fadeInUp 0.8s ease;
+}
+
+.estadisticas-subtitle {
+    text-align: center;
+    color: #556;
+    margin-bottom: 50px;
+    font-size: 18px;
+    animation: fadeInUp 0.8s ease 0.1s both;
+}
+
+/* Tarjetas con círculos animados - AHORA CON GRID PARA 4 TARJETAS */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 28px;
+    padding: 35px 25px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(47,122,122,0.1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(47,122,122,0.05), transparent);
+    transition: left 0.6s ease;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 30px 50px rgba(47,122,122,0.2);
+    border-color: rgba(47,122,122,0.3);
+}
+
+.circle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f7a7a, #5ba0a0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    box-shadow: 0 15px 35px rgba(47,122,122,0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    animation: pulseGlow 2s infinite;
+}
+
+.circle::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f7a7a, #7fb5a8);
+    opacity: 0.3;
+    z-index: -1;
+    animation: ripple 2s infinite;
+}
+
+.stat-card:hover .circle {
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px rgba(47,122,122,0.4);
+}
+
+.stat-card h3 {
+    color: #2f7a7a;
+    margin-bottom: 12px;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.stat-card p {
+    color: #667;
+    font-size: 14px;
+}
+
+/* Fila de gráficas */
+.charts-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+}
+
+.chart-wrapper {
+    flex: 1;
+    background: white;
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease 0.3s both;
+}
+
+.chart-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(47,122,122,0.1);
+}
+
+.chart-wrapper h3 {
+    color: #2f7a7a;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+canvas {
+    max-height: 280px;
+    width: 100%;
+}
+
+/* Top listas */
+.top-locations {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.top-departamentos, .top-ciudades {
+    flex: 1;
+    background: white;
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease 0.4s both;
+}
+
+.top-departamentos:hover, .top-ciudades:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(47,122,122,0.1);
+}
+
+.top-departamentos h3, .top-ciudades h3 {
+    color: #2f7a7a;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+.top-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.5s ease both;
+}
+
+.top-item .nombre {
+    width: 140px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.top-item .barra {
+    flex: 1;
+    height: 36px;
+    background: #e9ecef;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.top-item .barra-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2f7a7a, #7fb5a8);
+    width: 0%;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.loading-msg, .no-data {
+    text-align: center;
+    color: #999;
+    padding: 30px;
+    font-style: italic;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 15px 35px rgba(47,122,122,0.3);
+    }
+    50% {
+        box-shadow: 0 20px 45px rgba(47,122,122,0.5);
+    }
+}
+
+@keyframes ripple {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    70% {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets y pantallas medianas (hasta 1024px) */
+@media (max-width: 1024px) {
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .circle {
+        width: 120px;
+        height: 120px;
+        font-size: 28px;
+    }
+    
+    .stat-card {
+        padding: 25px 20px;
+    }
+    
+    .stat-card h3 {
+        font-size: 20px;
+    }
+}
+
+/* Pantallas de 900px o menos */
+@media (max-width: 900px) {
+    .charts-row {
+        flex-direction: column;
+    }
+    
+    .top-locations {
+        flex-direction: column;
+    }
+    
+    .estadisticas-title {
+        font-size: 32px;
+    }
+    
+    .estadisticas {
+        padding: 60px 15px;
+    }
+}
+
+/* Móviles (hasta 600px) */
+@media (max-width: 600px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .circle {
+        width: 100px;
+        height: 100px;
+        font-size: 24px;
+    }
+    
+    .stat-card {
+        padding: 20px 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+    
+    .stat-card p {
+        font-size: 13px;
+    }
+    
+    .estadisticas-title {
+        font-size: 28px;
+    }
+    
+    .estadisticas-subtitle {
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+    
+    .top-item .nombre {
+        width: 100px;
+        font-size: 12px;
+    }
+    
+    .top-item .barra-fill {
+        font-size: 12px;
+        padding-right: 8px;
+    }
+    
+    .chart-wrapper {
+        padding: 15px;
+    }
+    
+    .chart-wrapper h3 {
+        font-size: 18px;
+    }
+    
+    .top-departamentos, .top-ciudades {
+        padding: 15px;
+    }
+    
+    .top-departamentos h3, .top-ciudades h3 {
+        font-size: 18px;
+    }
+}
+
+/* Móviles muy pequeños (hasta 380px) */
+@media (max-width: 380px) {
+    .estadisticas-title {
+        font-size: 24px;
+    }
+    
+    .estadisticas-subtitle {
+        font-size: 14px;
+    }
+    
+    .circle {
+        width: 80px;
+        height: 80px;
+        font-size: 20px;
+    }
+    
+    .stat-card h3 {
+        font-size: 16px;
+    }
+    
+    .stat-card p {
+        font-size: 12px;
+    }
+    
+    .top-item .nombre {
+        width: 85px;
+        font-size: 11px;
+    }
+    
+    .top-item .barra-fill {
+        font-size: 11px;
+        padding-right: 5px;
+    }
+}

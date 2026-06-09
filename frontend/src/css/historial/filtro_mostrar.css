@@ -1,0 +1,144 @@
+/* historial/filtro_mostrar.css - Estilos del filtro de mostrar resultados y paginación */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* FILTRO DE RESULTADOS */
+.filters-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--card);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(20, 30, 30, 0.08);
+    border: 1px solid rgba(47, 122, 122, 0.1);
+    transition: all 0.3s ease;
+}
+
+.filters-container:hover {
+    box-shadow: 0 6px 18px rgba(47, 122, 122, 0.15);
+    transform: translateY(-2px);
+}
+
+.filter-label {
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.filter-select {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(47, 122, 122, 0.2);
+    background: var(--card);
+    color: #234;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+    transition: all 0.3s ease;
+    height: 44px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(47, 122, 122, 0.1);
+}
+
+.filter-select:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+/* PAGINACIÓN */
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.pagination-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-dark), #154a4a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(47,122,122,0.3);
+}
+
+.pagination-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.page-info {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--soft);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(47,122,122,0.2);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+    .filters-container {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 600px) {
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 8px;
+    }
+    .filter-label {
+        font-size: 12px;
+        text-align: center;
+    }
+    .filter-select {
+        width: 100%;
+        min-width: auto;
+        height: 40px;
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+    .pagination-container {
+        gap: 8px;
+    }
+    .pagination-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    .page-info {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+}

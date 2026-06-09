@@ -1,0 +1,275 @@
+/* auth_modal.css - Estilos del modal de autenticación (mismo diseño que login) */
+.auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.auth-modal.hidden {
+    display: none;
+}
+
+.auth-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.auth-modal-container {
+    position: relative;
+    background: var(--card);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 40px rgba(47, 122, 122, 0.25);
+    border: 1px solid rgba(47, 122, 122, 0.15);
+    animation: modalFadeIn 0.3s ease;
+    z-index: 10001;
+    overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.auth-modal-header {
+    background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+    padding: 25px 20px 20px 20px;
+    text-align: center;
+    position: relative;
+}
+
+.auth-modal-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.auth-modal-logo-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transform: rotate(-5deg);
+    transition: transform 0.3s ease;
+}
+
+.auth-modal-logo-icon:hover {
+    transform: rotate(0deg) scale(1.1);
+}
+
+.auth-modal-logo-text {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.auth-modal-logo-text span {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+}
+
+.auth-modal-header h3 {
+    color: white;
+    font-size: 20px;
+    margin: 10px 0 5px 0;
+    font-weight: 500;
+}
+
+.auth-modal-header p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    margin: 0;
+}
+
+.auth-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 18px;
+}
+
+.auth-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.auth-modal-body {
+    padding: 25px 30px 20px 30px;
+    background: white;
+}
+
+.auth-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.auth-modal-form-group {
+    position: relative;
+    width: 100%;
+}
+
+.auth-modal-input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #2f7a7a;
+    font-size: 18px;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.auth-modal-form-group input {
+    width: 100%;
+    padding: 14px 14px 14px 45px;
+    border: 2px solid #eef6f5;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.auth-modal-form-group input:focus {
+    border-color: #2f7a7a;
+    box-shadow: 0 0 0 3px rgba(47, 122, 122, 0.1);
+}
+
+.auth-modal-error {
+    display: none;
+}
+
+.auth-modal-btn {
+    background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 6px 15px rgba(47, 122, 122, 0.3);
+}
+
+.auth-modal-btn:hover {
+    background: linear-gradient(135deg, #1e5f5f, #154a4a);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(47, 122, 122, 0.4);
+}
+
+.auth-modal-loader {
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.auth-modal-footer {
+    padding: 15px 20px;
+    text-align: center;
+    background: #f6f7f9;
+    border-top: 1px solid #eef6f5;
+}
+
+.auth-modal-footer p {
+    color: #556;
+    font-size: 12px;
+    margin: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== ASEGURAR QUE SWEETALERT ESTÉ POR ENCIMA DEL MODAL ===== */
+.swal2-container {
+    z-index: 20000 !important;
+}
+
+.swal2-popup {
+    z-index: 20001 !important;
+}
+
+/* Estilos para el toggle de contraseña en el modal */
+.auth-modal-form-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #2f7a7a;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    padding: 0;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.05);
+}

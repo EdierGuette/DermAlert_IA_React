@@ -1,0 +1,145 @@
+/* styles/logout.css - Estilos específicos para logout y user info con mejoras responsive */
+.user-info {
+  background: var(--soft);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+.user-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(47, 122, 122, 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.user-info:hover::before {
+  opacity: 1;
+}
+.user-info:hover {
+  background: linear-gradient(135deg, var(--soft), #e8f4f3);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(47, 122, 122, 0.15);
+}
+
+.user-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Botón cerrar sesión fijo */
+.logout-container {
+  position: sticky;
+  bottom: 20px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, rgba(217, 83, 79, 0.1), rgba(217, 83, 79, 0.05)) !important;
+  color: #d9534f !important;
+  border: 2px solid rgba(217, 83, 79, 0.2) !important;
+  padding: 14px 16px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  transition: all 0.4s ease !important;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+}
+
+.logout-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(217, 83, 79, 0.1);
+  border-radius: 50%;
+  transition: all 0.6s ease;
+  transform: translate(-50%, -50%);
+}
+
+.logout-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.logout-btn:hover {
+  background: #d9534f !important;
+  color: white !important;
+  border-color: #d9534f !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(217, 83, 79, 0.3);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+.logout-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover .logout-icon {
+  transform: translateX(2px) scale(1.1);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .logout-container {
+    position: static;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  .logout-btn {
+    padding: 12px 14px !important;
+    font-size: 14px;
+    min-height: 48px;
+  }
+  .logout-icon {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .logout-btn {
+    padding: 10px 12px !important;
+    font-size: 13px;
+    min-height: 44px;
+    gap: 6px;
+  }
+  .logout-icon {
+    font-size: 16px;
+  }
+}

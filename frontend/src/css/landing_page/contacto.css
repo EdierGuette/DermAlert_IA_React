@@ -1,0 +1,566 @@
+/* contacto.css - Estilos para el modal de contacto - IGUAL QUE LOGIN/REGISTER */
+
+:root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --accent: #2f7a7a;
+    --accent-2: #7fb5a8;
+    --accent-dark: #1e5f5f;
+    --muted: #556;
+    --soft: #eef6f5;
+    --soft-dark: #d0e0e0;
+    --danger: #d9534f;
+    --success: #28a745;
+    --warning: #ffc107;
+    --info: #5bc0de;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --sans: "Segoe UI", Roboto, Arial, sans-serif;
+    --shadow: 0 20px 40px rgba(47,122,122,0.25);
+    --shadow-sm: 0 5px 15px rgba(47,122,122,0.15);
+    --transition: all 0.2s ease;
+}
+
+/* ===== MODAL DE CONTACTO ===== */
+.contact-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+    cursor: default;
+}
+
+.contact-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.contact-modal-content {
+    background: white;
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 480px; /* Reducido de 500px a 480px */
+    position: relative;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(47, 122, 122, 0.15);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Altura máxima relativa a la ventana */
+}
+
+/* ===== HEADER CON GRADIENTE - IGUAL QUE LOGIN ===== */
+.modal-header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    padding: 25px 30px 15px 30px; /* Reducido padding */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius) var(--radius) 0 0;
+    flex-shrink: 0; /* Evita que se encoja */
+}
+
+/* Onda dentro del header */
+.modal-header-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20px; /* Reducido de 25px */
+    z-index: 1;
+}
+
+.modal-header-wave svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20px; /* Reducido de 25px */
+    fill: white;
+    opacity: 0.15;
+}
+
+/* Logo - IGUAL QUE EN LOGIN */
+.modal-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Reducido de 10px */
+    position: relative;
+    z-index: 2;
+    margin-bottom: 5px; /* Reducido de 8px */
+}
+
+.modal-logo-icon {
+    width: 45px; /* Reducido de 50px */
+    height: 45px; /* Reducido de 50px */
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px; /* Reducido de 12px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px; /* Reducido de 26px */
+    transform: rotate(-5deg);
+    transition: transform 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.modal-logo-icon:hover {
+    transform: rotate(0deg) scale(1.1);
+}
+
+.modal-logo-text {
+    font-size: 24px; /* Reducido de 26px */
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.modal-logo-text span {
+    color: rgba(255,255,255,0.8);
+    font-weight: 400;
+}
+
+.modal-header h3 {
+    color: white;
+    font-size: 20px; /* Reducido de 20px (se mantiene) */
+    font-weight: 500;
+    margin-top: 3px; /* Reducido de 5px */
+    position: relative;
+    z-index: 2;
+    opacity: 0.95;
+}
+
+.modal-header p {
+    color: white;
+    font-size: 13px; /* Reducido de 14px */
+    position: relative;
+    z-index: 2;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+/* ===== BOTÓN CERRAR ===== */
+.close-modal {
+    position: absolute;
+    top: 12px; /* Ajustado */
+    right: 12px; /* Ajustado */
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 30px; /* Reducido de 32px */
+    height: 30px; /* Reducido de 32px */
+    border-radius: 50%;
+    font-size: 18px; /* Reducido de 20px */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.close-modal:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+    border-color: rgba(255,255,255,0.5);
+}
+
+/* ===== CUERPO DEL MODAL ===== */
+.modal-body {
+    padding: 18px 25px 20px 25px; /* Reducido padding */
+    background: white;
+    flex: 1; /* Ocupa el espacio restante */
+    overflow-y: auto; /* Scroll solo si es necesario */
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Reducido de 16px */
+}
+
+.form-row {
+    display: flex;
+    gap: 10px; /* Reducido de 12px */
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px; /* Reducido de 4px */
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 12px; /* Reducido de 13px */
+    letter-spacing: 0.3px;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px 12px; /* Reducido de 12px 14px */
+    border: 2px solid var(--soft);
+    border-radius: var(--radius-sm);
+    font-size: 13px; /* Reducido de 14px */
+    transition: var(--transition);
+    font-family: var(--sans);
+    width: 100%;
+    background: white;
+    height: 40px; /* Altura fija para inputs */
+}
+
+.form-group textarea {
+    min-height: 70px; /* Reducido de 100px */
+    height: auto;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47,122,122,0.1);
+}
+
+.form-group input:hover,
+.form-group textarea:hover {
+    border-color: rgba(47,122,122,0.3);
+}
+
+/* ===== ESTILOS PARA EL CAMPO DE TELÉFONO CON PAÍS ===== */
+.phone-input-container {
+    width: 100%;
+    position: relative;
+}
+
+.iti {
+    width: 100%;
+    display: block !important;
+    position: relative;
+}
+
+.iti__flag-container {
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.iti__selected-flag {
+    background-color: transparent !important;
+    border-radius: 8px 0 0 8px;
+    padding-left: 8px; /* Reducido de 10px */
+    padding-right: 4px; /* Reducido de 6px */
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.iti__selected-flag:hover {
+    background-color: rgba(47,122,122,0.05) !important;
+}
+
+.iti__country-list {
+    position: absolute !important;
+    top: 40px !important; /* Ajustado para que aparezca justo debajo */
+    left: 0 !important;
+    right: auto !important;
+    max-width: 300px !important; /* Reducido */
+    min-width: 260px !important; /* Reducido */
+    width: auto !important;
+    max-height: 180px !important; /* Reducido */
+    border-radius: 8px !important;
+    border: 1px solid var(--soft) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    font-size: 12px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: white !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+    padding: 5px 0 !important;
+    list-style: none;
+    white-space: nowrap;
+}
+
+.iti__country {
+    padding: 6px 10px !important; /* Reducido */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Reducido */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.iti__country:hover {
+    background-color: rgba(47,122,122,0.05) !important;
+}
+
+.iti__country.iti__highlight {
+    background-color: rgba(47,122,122,0.1) !important;
+}
+
+.iti__country-name {
+    color: var(--muted);
+    font-size: 12px;
+    margin-right: 6px; /* Reducido */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px; /* Reducido */
+}
+
+.iti__dial-code {
+    color: var(--accent);
+    font-size: 11px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.iti__flag-box {
+    margin-right: 6px; /* Reducido */
+    flex-shrink: 0;
+}
+
+#contactTelefono {
+    width: 100% !important;
+    padding-left: 85px !important; /* Reducido de 95px */
+    padding-right: 8px !important; /* Reducido */
+    box-sizing: border-box;
+    font-size: 13px; /* Reducido de 14px */
+    height: 40px; /* Altura fija */
+}
+
+.iti__arrow {
+    margin-left: 2px !important; /* Reducido */
+    border-left: 3px solid transparent !important; /* Reducido */
+    border-right: 3px solid transparent !important; /* Reducido */
+    border-top: 3px solid var(--accent) !important; /* Reducido */
+    opacity: 0.7;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.iti__arrow--up {
+    border-top: none !important;
+    border-bottom: 3px solid var(--accent) !important; /* Reducido */
+}
+
+.iti__selected-dial-code {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-left: 2px; /* Reducido */
+    white-space: nowrap;
+}
+
+.phone-hint {
+    font-size: 10px; /* Reducido de 11px */
+    color: var(--muted);
+    margin-top: 2px;
+    opacity: 0.7;
+}
+
+/* ===== BOTÓN ENVIAR ===== */
+.contact-form .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 18px; /* Reducido de 14px 20px */
+    font-size: 15px; /* Reducido de 16px */
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 6px 15px rgba(47,122,122,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 5px; /* Reducido de 8px */
+    width: 100%;
+    letter-spacing: 0.3px;
+}
+
+.contact-form .btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent-dark), #154a4a);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(47,122,122,0.4);
+}
+
+.contact-form .btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ===== INFORMACIÓN DE CONTACTO ===== */
+.contact-info {
+    margin-top: 15px; /* Reducido de 20px */
+    padding-top: 12px; /* Reducido de 16px */
+    border-top: 1px solid var(--soft);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 8px; /* Reducido de 12px */
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Reducido de 8px */
+    color: var(--muted);
+    font-size: 12px; /* Reducido de 13px */
+    transition: var(--transition);
+}
+
+.info-item:hover {
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.info-item ion-icon {
+    font-size: 16px; /* Reducido de 18px */
+    color: var(--accent);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+    body {
+        padding: 12px;
+    }
+    
+    .contact-modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+    
+    .modal-header {
+        padding: 20px 20px 12px 20px;
+    }
+    
+    .modal-logo-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+    
+    .modal-logo-text {
+        font-size: 22px;
+    }
+    
+    .modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .modal-header p {
+        font-size: 13px;
+    }
+    
+    .modal-body {
+        padding: 15px 20px 18px 20px;
+    }
+    
+    .contact-form {
+        gap: 12px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px 12px;
+        height: 42px;
+    }
+    
+    .form-group textarea {
+        min-height: 80px;
+    }
+    
+    #contactTelefono {
+        padding-left: 80px !important;
+        height: 42px;
+        font-size: 14px;
+    }
+    
+    .contact-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .close-modal {
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+    
+    .iti__country-list {
+        max-width: 260px !important;
+        min-width: 220px !important;
+        top: 45px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .modal-header {
+        padding: 15px 12px 10px 12px;
+    }
+    
+    .modal-logo-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+    
+    .modal-logo-text {
+        font-size: 20px;
+    }
+    
+    .modal-header h3 {
+        font-size: 16px;
+    }
+    
+    .modal-body {
+        padding: 12px 15px 15px 15px;
+    }
+    
+    #contactTelefono {
+        padding-left: 70px !important;
+    }
+    
+    .contact-form .btn-primary {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .iti__country-list {
+        max-width: 240px !important;
+        min-width: 200px !important;
+    }
+}

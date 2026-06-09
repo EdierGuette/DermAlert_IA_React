@@ -1,0 +1,62 @@
+/* resultados/header.css - Estilos del header y títulos de resultados con mejoras responsive */
+
+#results .results-title {
+  color: var(--accent);
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+#results .results-subtitle {
+  color: var(--muted);
+  font-weight: 400;
+  margin-bottom: 20px;
+  font-size: 16px;
+  background: transparent !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: var(--muted) !important;
+}
+
+.exam-results-title {
+  color: var(--accent);
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.aggregated-title {
+  color: var(--accent);
+  margin: 32px 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--soft);
+  font-weight: 600;
+  font-size: 22px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  #results .results-title {
+    font-size: 24px;
+  }
+  #results .results-subtitle {
+    font-size: 15px;
+  }
+  .aggregated-title {
+    font-size: 20px;
+    margin: 24px 0 12px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  #results .results-title {
+    font-size: 20px;
+  }
+  #results .results-subtitle {
+    font-size: 14px;
+  }
+  .aggregated-title {
+    font-size: 18px;
+    margin: 20px 0 10px 0;
+  }
+}

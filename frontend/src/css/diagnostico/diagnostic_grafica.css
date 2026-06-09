@@ -1,0 +1,135 @@
+/* diagnostico/diagnostic_grafica.css - Estilos de la gráfica de diagnóstico con tamaño mejorado */
+.controls {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.result-box {
+background: var(--card);
+padding: 25px;
+border-radius: 12px;
+box-shadow: 0 6px 15px rgba(20, 30, 30, 0.06);
+min-height: 450px;
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.result-box h3 {
+font-size: 20px;
+margin-bottom: 5px;
+color: var(--accent);
+}
+/* Estado inicial de la gráfica vacía */
+.result-box:not(.has-results) #probChart {
+background: #f8f9fa;
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 250px;
+}
+.result-box:not(.has-results) #probChart::before {
+content: "Gráfica de probabilidades detalladas";
+color: #666;
+font-style: italic;
+text-align: center;
+padding: 20px;
+}
+/* Contenedor de la gráfica - OCUPA MÁS ESPACIO (ajustado para 4 barras) */
+#probChart {
+width: 100% !important;
+height: 300px !important;      /* Aumentado de 280px a 300px */
+max-height: 380px;
+margin-top: 10px;
+}
+/* Mejoras para la gráfica de probabilidades */
+.chart-container {
+position: relative;
+margin: 20px 0;
+}
+.chart-legend {
+display: flex;
+justify-content: center;
+gap: 15px;
+margin-top: 10px;
+flex-wrap: wrap;
+}
+.legend-item {
+display: flex;
+align-items: center;
+gap: 5px;
+font-size: 12px;
+}
+.legend-color {
+width: 12px;
+height: 12px;
+border-radius: 2px;
+}
+/* ========== RESPONSIVE ========== */
+/* Desktop grande (más de 1200px) */
+@media (min-width: 1200px) {
+.result-box {
+min-height: 500px;
+padding: 30px;
+}
+#probChart {
+height: 350px !important;     /* Aumentado de 320px a 350px */
+max-height: 420px;
+}
+}
+/* Desktop normal (901px - 1199px) */
+@media (min-width: 901px) and (max-width: 1199px) {
+.result-box {
+min-height: 450px;
+}
+#probChart {
+height: 300px !important;     /* Aumentado de 280px a 300px */
+}
+}
+/* Tablets (601px - 900px) */
+@media (min-width: 601px) and (max-width: 900px) {
+.result-box {
+min-height: 400px;
+padding: 20px;
+}
+.result-box h3 {
+font-size: 18px;
+}
+#probChart {
+height: 270px !important;     /* Aumentado de 250px a 270px */
+}
+}
+/* Móviles grandes (400px - 600px) */
+@media (min-width: 400px) and (max-width: 600px) {
+.result-box {
+min-height: 380px;
+padding: 15px;
+}
+.result-box h3 {
+font-size: 16px;
+}
+#probChart {
+height: 240px !important;     /* Aumentado de 220px a 240px */
+}
+}
+/* Móviles pequeños (menos de 400px) */
+@media (max-width: 399px) {
+.result-box {
+min-height: 350px;
+padding: 12px;
+gap: 10px;
+}
+.result-box h3 {
+font-size: 15px;
+}
+#probChart {
+height: 200px !important;     /* Aumentado de 180px a 200px */
+}
+.chart-legend {
+gap: 8px;
+}
+.legend-item {
+font-size: 10px;
+}
+}

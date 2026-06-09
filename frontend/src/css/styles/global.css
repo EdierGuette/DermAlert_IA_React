@@ -1,0 +1,230 @@
+/* styles/global.css - Versión con iconos cuadrados y sin sombras */
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --accent: #2f7a7a;
+  --accent-2: #7fb5a8;
+  --muted: #556;
+  --soft: #eef6f5;
+  --danger: #d9534f;
+  --radius: 12px;
+  --sans: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ========== PREVENIR SCROLL HORIZONTAL EN TODA LA PÁGINA ========== */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+body {
+  font-family: var(--sans);
+  background: linear-gradient(135deg, var(--bg), #eef3f2);
+  color: #234;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Contenedor principal de la aplicación */
+.app {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Scroll personalizado para el main */
+.main {
+  overflow-x: hidden;
+  width: 100%;
+  padding: 28px;
+}
+
+.main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main::-webkit-scrollbar-track {
+  background: var(--soft);
+  border-radius: 4px;
+}
+
+.main::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-2);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .app {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    min-height: auto;
+    padding: 6px 10px;
+    gap: 2px;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, var(--card), #f7fbfb);
+    box-shadow: none;
+    border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+  }
+  .brand {
+    font-size: 16px;
+    margin-bottom: 0;
+    border-bottom: none;
+    border-right: 2px solid var(--soft);
+    padding-right: 8px;
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+  .menu {
+    flex-direction: row;
+    margin-top: 0;
+    flex: 1;
+    gap: 1px;
+  }
+  .menu-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    text-align: center;
+    white-space: nowrap;
+    flex-direction: column;
+    gap: 0;
+    font-size: 0;
+    border-radius: 4px;
+    min-width: 42px;
+    box-shadow: none;
+    transition: background-color 0.2s ease;
+  }
+  .menu-btn:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+  }
+  .menu-btn.active {
+    background: var(--soft);
+    border-left: none;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 3px;
+  }
+  .menu-icon {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    color: var(--muted);
+  }
+  .menu-btn.active .menu-icon {
+    color: var(--accent);
+    transform: none;
+  }
+  .menu-btn:hover .menu-icon {
+    color: var(--accent);
+    transform: none;
+  }
+  .menu-btn span:not(.menu-icon) {
+    display: none;
+  }
+  .user-info {
+    display: none;
+  }
+  .logout-container {
+    position: static;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .logout-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px !important;
+    font-size: 0 !important;
+    flex-direction: column;
+    gap: 0;
+    white-space: nowrap;
+    min-width: 42px;
+    box-shadow: none !important;
+    border-radius: 4px;
+  }
+  .logout-btn:hover {
+    background: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .logout-icon {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    color: #d9534f;
+  }
+  .logout-btn:hover .logout-icon {
+    color: #c9302c;
+    transform: none;
+  }
+  .main {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    padding: 4px 8px;
+    gap: 1px;
+  }
+  .brand {
+    font-size: 14px;
+    padding-right: 6px;
+    margin-right: 3px;
+  }
+  .menu-btn {
+    padding: 5px;
+    min-width: 38px;
+  }
+  .menu-icon {
+    font-size: 20px;
+    width: 22px;
+    height: 22px;
+  }
+  .logout-btn {
+    padding: 5px !important;
+    min-width: 38px;
+  }
+  .logout-icon {
+    font-size: 20px;
+    width: 22px;
+    height: 22px;
+  }
+  .main {
+    padding: 12px;
+  }
+}
+
+/* Asegurar que SweetAlert esté por encima de todo */
+.swal2-container {
+    z-index: 20000 !important;
+}
+
+.swal2-popup {
+    z-index: 20001 !important;
+}

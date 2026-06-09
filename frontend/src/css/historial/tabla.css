@@ -1,0 +1,346 @@
+/* historial/tabla.css - Estilos de la tabla de historial */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(20, 30, 30, 0.08);
+    border: 1px solid rgba(47, 122, 122, 0.05);
+    min-width: 800px; /* Ancho mínimo para que la tabla no se rompa */
+}
+
+/* Contenedor responsivo con scroll horizontal solo en la tabla */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 12px;
+    border-radius: 12px;
+}
+
+/* Asegurar que la página principal no tenga scroll horizontal */
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+.main {
+    overflow-x: hidden;
+}
+
+.history-table th,
+.history-table td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(47, 122, 122, 0.08);
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.history-table th {
+    background: var(--soft);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 13px;
+    position: relative;
+}
+
+.history-table tbody tr:nth-child(odd) {
+    background: rgba(47, 122, 122, 0.02);
+}
+
+.history-table tbody tr:nth-child(even) {
+    background: var(--card);
+}
+
+.history-table tbody tr:hover {
+    background: rgba(47, 122, 122, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(47, 122, 122, 0.1);
+}
+
+.history-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Contenedor de botones de acción */
+.actions-container {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* Estilos base para ambos botones */
+.view-results-btn,
+.delete-record-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-height: 32px;
+}
+
+.view-results-btn {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 6px rgba(47, 122, 122, 0.15);
+}
+
+.view-results-btn:hover {
+    background: #266b6b;
+    box-shadow: 0 4px 10px rgba(47, 122, 122, 0.25);
+    transform: translateY(-2px);
+}
+
+.delete-record-btn {
+    background: #d9534f;
+    color: white;
+    box-shadow: 0 2px 6px rgba(217, 83, 79, 0.15);
+}
+
+.delete-record-btn:hover {
+    background: #c9302c;
+    box-shadow: 0 4px 10px rgba(217, 83, 79, 0.25);
+    transform: translateY(-2px);
+}
+
+.view-results-btn:active,
+.delete-record-btn:active {
+    transform: translateY(0);
+}
+
+/* Iconos en botones */
+.view-results-btn ion-icon,
+.delete-record-btn ion-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+/* ===== ESTILOS PARA BADGES ===== */
+
+/* Base para todos los badges */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+/* Badges para CATEGORÍA */
+.category-badge-maligno {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.category-badge-benigno {
+    background: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.category-badge-premaligno {
+    background: rgba(255, 140, 0, 0.15);
+    color: #e8590c;
+    border: 1px solid rgba(255, 140, 0, 0.3);
+}
+
+.category-badge-desconocido {
+    background: rgba(255, 193, 7, 0.15);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+/* Badges para TIPO DE LESION */
+.lesion-badge-benigno {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.lesion-badge-maligno {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.lesion-badge-premaligno {
+    background: rgba(255, 140, 0, 0.1);
+    color: #e8590c;
+    border: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+.lesion-badge-desconocido {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+/* Badges para RIESGO */
+.risk-badge-high {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.risk-badge-moderate {
+    background: rgba(255, 140, 0, 0.1);
+    color: #e8590c;
+    border: 1px solid rgba(255, 140, 0, 0.2);
+}
+
+.risk-badge-low {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.risk-badge-unknown {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+/* Estilo para CÓDIGO CIE-10 (sin badge) */
+.cie-code {
+    font-family: monospace;
+    font-weight: 600;
+    font-size: 12px;
+    color: #2c3e50;
+    background: transparent;
+    padding: 0;
+    white-space: nowrap;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets y móviles - scroll solo en la tabla */
+@media (max-width: 992px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .history-table {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 768px) {
+    .history-table th,
+    .history-table td {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+    
+    .history-table th {
+        font-size: 12px;
+    }
+    
+    .badge {
+        min-width: 70px;
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    
+    .cie-code {
+        font-size: 11px;
+    }
+    
+    .view-results-btn,
+    .delete-record-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        min-height: 28px;
+    }
+    
+    .view-results-btn span,
+    .delete-record-btn span {
+        display: none;
+    }
+    
+    .view-results-btn ion-icon,
+    .delete-record-btn ion-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        margin: 0;
+    }
+    
+    .actions-container {
+        gap: 4px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .history-table th,
+    .history-table td {
+        padding: 6px 4px;
+        font-size: 10px;
+    }
+    
+    .history-table th {
+        font-size: 11px;
+    }
+    
+    .badge {
+        min-width: 60px;
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    
+    .cie-code {
+        font-size: 10px;
+    }
+    
+    .view-results-btn,
+    .delete-record-btn {
+        padding: 3px 6px;
+        min-height: 24px;
+    }
+    
+    .view-results-btn ion-icon,
+    .delete-record-btn ion-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+    }
+    
+    .pagination-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+    
+    .page-info {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}
+
+/* Desktop (más de 768px) - mostrar texto en botones */
+@media (min-width: 769px) {
+    .view-results-btn span,
+    .delete-record-btn span {
+        display: inline-block;
+    }
+    
+    .view-results-btn ion-icon,
+    .delete-record-btn ion-icon {
+        margin-right: 4px;
+    }
+}

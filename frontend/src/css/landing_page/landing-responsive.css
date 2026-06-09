@@ -1,0 +1,323 @@
+/* landing-responsive.css - Estilos responsivos */
+
+/* Pantallas grandes (más de 1200px) */
+@media (min-width: 1200px) {
+    .hero-container {
+        max-width: 1200px;
+        gap: 40px;
+    }
+    
+    .hero-title {
+        font-size: 48px;
+    }
+    
+    .hero-title span {
+        font-size: 54px;
+    }
+}
+
+/* Desktop normal (901px - 1199px) */
+@media (min-width: 901px) and (max-width: 1199px) {
+    .hero-container {
+        gap: 20px;
+    }
+    
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .hero-title span {
+        font-size: 42px;
+    }
+    
+    .qr-code-real img {
+        width: 180px !important;
+        height: 180px !important;
+    }
+}
+
+/* Tablets (601px - 900px) */
+@media (min-width: 601px) and (max-width: 900px) {
+    .hero-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .hero-left,
+    .hero-right {
+        max-width: 100% !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .hero-title span {
+        font-size: 42px;
+    }
+    
+    .header-content {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    .features-title h2 {
+        font-size: 30px;
+    }
+    
+    .features-title p {
+        font-size: 16px;
+    }
+}
+
+/* Móviles (hasta 600px) */
+@media (max-width: 600px) {
+    .header {
+        height: auto;
+        min-height: var(--header-height);
+        padding: 10px 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 15px;
+    }
+    
+    .logo {
+        font-size: 20px;
+    }
+    
+    .logo-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .nav-link {
+        font-size: 14px;
+        padding: 5px 8px;
+    }
+    
+    .nav-buttons {
+        width: 100%;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 5px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .btn-outline {
+        padding: 6px 16px;
+    }
+    
+    .hero {
+        padding: 20px 15px;
+        min-height: auto;
+    }
+    
+    .hero-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .hero-left,
+    .hero-right {
+        max-width: 100% !important;
+        width: 100%;
+        display: block !important;
+        padding: 20px;
+    }
+    
+    .hero-title {
+        font-size: 28px;
+    }
+    
+    .hero-title span {
+        font-size: 32px;
+    }
+    
+    .hero-description {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .slider-container {
+        margin-bottom: 20px;
+    }
+    
+    .medicalSwiper {
+        height: 160px;
+    }
+    
+    .slide-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    
+    .slide-content h4 {
+        font-size: 15px;
+    }
+    
+    .slide-content p {
+        font-size: 12px;
+    }
+    
+    .hero-right {
+        margin-top: 10px;
+    }
+    
+    .qr-container {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .qr-code-real {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .qr-code-real img {
+        width: 160px !important;
+        height: 160px !important;
+        max-width: 100%;
+    }
+    
+    .qr-title {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+    
+    .qr-subtitle {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+    
+    .qr-features {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .qr-feature {
+        font-size: 12px;
+    }
+    
+    .features {
+        padding: 40px 15px;
+    }
+    
+    .features-title h2 {
+        font-size: 24px;
+    }
+    
+    .features-title p {
+        font-size: 14px;
+    }
+    
+    .feature-card {
+        padding: 20px;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .footer-logo {
+        font-size: 18px;
+    }
+    
+    .footer-copyright,
+    .footer-contact {
+        font-size: 12px;
+    }
+}
+
+/* Móviles pequeños (hasta 380px) */
+@media (max-width: 380px) {
+    .hero-title {
+        font-size: 24px;
+    }
+    
+    .hero-title span {
+        font-size: 28px;
+    }
+    
+    .qr-code-real img {
+        width: 140px !important;
+        height: 140px !important;
+    }
+    
+    .nav-link {
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+    
+    .btn {
+        font-size: 12px;
+        padding: 6px 12px;
+        min-width: 100px;
+    }
+    
+    .slide-icon {
+        font-size: 28px;
+    }
+    
+    .slide-content h4 {
+        font-size: 14px;
+    }
+    
+    .slide-content p {
+        font-size: 11px;
+    }
+    
+    .qr-features {
+        gap: 10px;
+    }
+    
+    .qr-feature {
+        font-size: 11px;
+    }
+}

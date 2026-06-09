@@ -1,0 +1,222 @@
+/* inicio/body.css - Estilos principales de la vista inicio con mejoras responsive */
+
+#home {
+  width: 100%;
+  min-height: 100%;
+}
+
+.lead {
+  color: #334;
+  opacity: 0.8;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* Warning Banner */
+.warning-banner {
+  background: #fff8e6;
+  border: 1px solid #ffd54f;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-content strong {
+  color: #e65100;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.warning-content p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Process Section */
+.process-section {
+  margin: 30px 0;
+}
+
+.process-section h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.process-steps {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.process-step {
+  flex: 1;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.step-number {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.step-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.process-step h3 {
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.process-step p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.step-tips {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  text-align: left;
+}
+
+.step-tips strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.step-tips ul {
+  margin: 0;
+  padding-left: 15px;
+  font-size: 13px;
+}
+
+.step-tips li {
+  margin-bottom: 4px;
+  color: #666;
+}
+
+/* Cards */
+.cards {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(20, 30, 30, 0.04);
+  flex: 1;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--soft);
+  padding-bottom: 10px;
+}
+
+.card-icon {
+  font-size: 24px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 18px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .cards {
+    flex-direction: column;
+  }
+  .process-steps {
+    flex-direction: column;
+  }
+  .lead {
+    font-size: 15px;
+  }
+  .warning-banner {
+    padding: 12px;
+  }
+  .warning-icon {
+    font-size: 20px;
+  }
+  .warning-content strong {
+    font-size: 14px;
+  }
+  .warning-content p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .process-step {
+    padding: 20px 15px;
+  }
+  .step-icon {
+    font-size: 36px;
+  }
+  .process-step h3 {
+    font-size: 16px;
+  }
+  .process-step p,
+  .step-tips ul,
+  .step-tips li {
+    font-size: 12px;
+  }
+  .card {
+    padding: 15px;
+  }
+  .card-header h3 {
+    font-size: 16px;
+  }
+  .card-icon {
+    font-size: 20px;
+  }
+  .prevention-item span {
+    font-size: 13px;
+  }
+}

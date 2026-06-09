@@ -1,0 +1,193 @@
+/* historial/filtro_busqueda_id_cedula.css - Estilos del filtro de búsqueda con mejoras responsive */
+.search-filters {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(20, 30, 30, 0.08);
+  border: 1px solid rgba(47, 122, 122, 0.1);
+  min-width: 380px;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.search-filters:hover {
+  box-shadow: 0 6px 20px rgba(47, 122, 122, 0.12);
+  transform: translateY(-2px);
+}
+
+.search-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.search-tab {
+  background: var(--soft);
+  border: 1px solid rgba(47, 122, 122, 0.2);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  flex: 1;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 44px;
+}
+
+.search-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(47, 122, 122, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.search-tab:hover::before {
+  left: 100%;
+}
+
+.search-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.2);
+}
+
+.search-tab:hover:not(.active) {
+  background: rgba(47, 122, 122, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.search-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-input-group input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(47, 122, 122, 0.2);
+  background: var(--bg);
+  color: #234;
+  font-size: 16px;
+  min-width: 100px;
+  transition: all 0.3s ease;
+  height: 48px;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 122, 122, 0.1);
+  transform: translateY(-1px);
+}
+
+.search-input-group input:hover {
+  border-color: rgba(47, 122, 122, 0.4);
+}
+
+.search-btn,
+.clear-btn {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  white-space: nowrap;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.search-btn::before,
+.clear-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.4s ease;
+  transform: translate(-50%, -50%);
+}
+
+.search-btn:hover::before,
+.clear-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.15);
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #266b6b, #6fa89a);
+  box-shadow: 0 6px 18px rgba(47, 122, 122, 0.25);
+  transform: translateY(-2px);
+}
+
+.clear-btn {
+  background: var(--soft);
+  color: var(--muted);
+  border: 1px solid rgba(47, 122, 122, 0.2);
+}
+
+.clear-btn:hover {
+  background: rgba(47, 122, 122, 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .search-filters {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-input-group {
+    flex-direction: column;
+  }
+  .search-input-group input {
+    width: 100%;
+    height: 44px;
+    font-size: 16px;
+  }
+  .search-btn,
+  .clear-btn {
+    width: 100%;
+    height: 44px;
+    font-size: 14px;
+    padding: 10px;
+  }
+  .search-tab {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}

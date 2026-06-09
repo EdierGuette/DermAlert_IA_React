@@ -1,0 +1,438 @@
+/* resultados/user_info.css - Estilos de información del usuario */
+.result-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(20, 30, 30, 0.1);
+    border: 1px solid rgba(47, 122, 122, 0.1);
+    margin-bottom: 30px;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease;
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(47, 122, 122, 0.15);
+}
+
+.card-header {
+    background: #2f7a7a;
+    color: white;
+    padding: 20px 24px;
+    text-align: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+    padding: 30px;
+}
+
+/* ===== TABLA DE INFORMACIÓN DEL DIAGNÓSTICO ===== */
+.diagnostico-info-table {
+    margin-bottom: 30px;
+    background: var(--soft);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(47, 122, 122, 0.15);
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+}
+
+.info-table tr:last-child td {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--accent);
+    width: 140px;
+    background: rgba(47, 122, 122, 0.05);
+    font-size: 14px;
+}
+
+.info-value {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ===== SECCIÓN IMAGEN + RECOMENDACIONES (dos columnas) ===== */
+.imagen-recomendaciones-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* Columna de la imagen */
+.imagen-columna-result {
+    flex: 1;
+    min-width: 280px;
+    background: var(--soft);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(47, 122, 122, 0.15);
+}
+
+.imagen-header {
+    background: #2f7a7a;
+    padding: 10px 16px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.imagen-icon {
+    font-size: 16px;
+    margin-right: 8px;
+    color: white;
+}
+
+.imagen-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+}
+
+.imagen-container-result {
+    padding: 25px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.imagen-preview-result {
+    max-width: 100%;
+    max-height: 400px;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.imagen-preview-result:hover {
+    transform: scale(1.02);
+}
+
+/* Columna de recomendaciones */
+.recomendaciones-columna {
+    flex: 1;
+    min-width: 280px;
+    background: var(--soft);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(47, 122, 122, 0.15);
+}
+
+.recomendaciones-header {
+    background: #2f7a7a;
+    padding: 10px 16px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.recomendaciones-icon {
+    font-size: 16px;
+    margin-right: 8px;
+    color: white;
+}
+
+.recomendaciones-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+}
+
+.recomendaciones-container {
+    padding: 20px;
+}
+
+.recomendacion-item {
+    margin-bottom: 20px;
+}
+
+.recomendacion-item strong {
+    color: var(--accent);
+    font-size: 14px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.recomendacion-item p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.recommendation-box-result {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+/* ===== GRÁFICAS EN DOS COLUMNAS ===== */
+.graphs-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+.graph-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+.graph-container {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid rgba(47, 122, 122, 0.15);
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.graph-title {
+    color: var(--accent);
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.graph-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    min-height: 400px;
+}
+
+/* Gráficas agregadas */
+.charts-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.chart-wrapper {
+    flex: 1;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(47, 122, 122, 0.1);
+    min-width: 250px;
+}
+
+.chart-wrapper h4 {
+    color: var(--accent);
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.chart-canvas-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 350px;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets y móviles grandes */
+@media (max-width: 900px) {
+    .card-header h3 {
+        font-size: 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    /* Tabla más compacta */
+    .info-table td {
+        padding: 8px 10px;
+    }
+    
+    .info-label {
+        width: 100px;
+        font-size: 12px;
+    }
+    
+    .info-value {
+        font-size: 12px;
+    }
+    
+    /* Imagen + recomendaciones en columna */
+    .imagen-recomendaciones-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .imagen-columna-result,
+    .recomendaciones-columna {
+        min-width: auto;
+    }
+    
+    .imagen-container-result {
+        min-height: 280px;
+        padding: 20px;
+    }
+    
+    .imagen-preview-result {
+        max-height: 350px;
+    }
+    
+    .recomendaciones-container {
+        padding: 15px;
+    }
+    
+    .recomendacion-item strong {
+        font-size: 13px;
+    }
+    
+    .recomendacion-item p {
+        font-size: 13px;
+    }
+    
+    /* Gráficas en columna */
+    .graphs-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .graph-wrapper {
+        min-height: 350px;
+    }
+    
+    .chart-wrapper h4 {
+        font-size: 14px;
+    }
+    
+    .chart-canvas-container {
+        height: 220px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 600px) {
+    .card-header {
+        padding: 12px 16px;
+    }
+    
+    .card-header h3 {
+        font-size: 16px;
+    }
+    
+    .card-body {
+        padding: 12px;
+    }
+    
+    /* Tabla aún más compacta */
+    .info-table td {
+        padding: 6px 8px;
+    }
+    
+    .info-label {
+        width: 85px;
+        font-size: 10px;
+    }
+    
+    .info-value {
+        font-size: 10px;
+    }
+    
+    .imagen-container-result {
+        min-height: 240px;
+        padding: 15px;
+    }
+    
+    .imagen-preview-result {
+        max-height: 280px;
+    }
+    
+    .recomendaciones-container {
+        padding: 12px;
+    }
+    
+    .recomendacion-item {
+        margin-bottom: 12px;
+    }
+    
+    .recomendacion-item strong {
+        font-size: 12px;
+    }
+    
+    .recomendacion-item p {
+        font-size: 12px;
+    }
+    
+    .graph-title {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    
+    .graph-wrapper {
+        min-height: 280px;
+        padding: 10px;
+    }
+    
+    .chart-wrapper {
+        padding: 12px;
+    }
+    
+    .chart-wrapper h4 {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+    
+    .chart-canvas-container {
+        height: 180px;
+    }
+}

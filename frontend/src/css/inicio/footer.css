@@ -1,0 +1,126 @@
+/* inicio/footer.css - Footer y elementos finales de inicio con mejoras responsive */
+
+.prevention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prevention-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.check-icon {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+/* Education Card */
+.education-content h4 {
+  color: var(--accent);
+  margin: 15px 0 8px 0;
+}
+
+.education-content h4:first-child {
+  margin-top: 0;
+}
+
+.abcde-list {
+  list-style: none;
+  padding: 0;
+}
+
+.abcde-list li {
+  margin-bottom: 6px;
+  padding: 5px 0;
+}
+
+.abcde-list strong {
+  color: var(--accent);
+}
+
+/* News Card */
+.news-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.news-item h4 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+  font-size: 14px;
+}
+
+.news-item p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Professional Footer */
+.professional-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.footer-section {
+  font-size: 12px;
+  color: #666;
+}
+
+.footer-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-section {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .prevention-item {
+    gap: 8px;
+  }
+  .prevention-item span {
+    font-size: 13px;
+  }
+  .education-content h4 {
+    font-size: 15px;
+  }
+  .education-content p,
+  .abcde-list li,
+  .news-item p {
+    font-size: 12px;
+  }
+  .news-item h4 {
+    font-size: 13px;
+  }
+  .footer-section {
+    font-size: 11px;
+  }
+}

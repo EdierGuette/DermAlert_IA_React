@@ -1,0 +1,485 @@
+/* styles/dashboard.css - Versión con botones horizontales en móvil */
+.app {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, var(--card), #f7fbfb);
+  box-shadow: 2px 0 12px rgba(20, 30, 30, 0.06);
+  padding: 28px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  min-height: 100vh;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 15px 0;
+  border-bottom: 2px solid var(--soft);
+  transition: all 0.3s ease;
+}
+.brand:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 4px 8px rgba(47, 122, 122, 0.2);
+}
+.brand span {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  flex: 1;
+}
+
+/* Estilo base para TODOS los botones del menú */
+.menu-btn {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 52px;
+  line-height: 1;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Efecto de hover */
+.menu-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(47, 122, 122, 0.08), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+  pointer-events: none;
+  border-radius: 10px;
+}
+
+.menu-btn:hover::after {
+  transform: translateX(100%);
+}
+
+.menu-btn:hover {
+  background: var(--soft);
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.15);
+}
+
+/* Estado activo */
+.menu-btn.active {
+  background: var(--soft);
+  color: var(--accent);
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+  box-shadow: 0 4px 12px rgba(47, 122, 122, 0.15);
+}
+
+/* Iconos del menú */
+.menu-icon {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.menu-btn.active .menu-icon,
+.menu-btn:hover .menu-icon {
+  color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* Texto del botón */
+.menu-btn span:not(.menu-icon) {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Contenedor de logout */
+.logout-container {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* Botón de logout */
+.logout-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #d9534f !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  height: 52px !important;
+  line-height: 1 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.logout-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(217, 83, 79, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+  pointer-events: none;
+  border-radius: 10px;
+}
+
+.logout-btn:hover::after {
+  transform: translateX(100%);
+}
+
+.logout-btn:hover {
+  background: #d9534f !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(217, 83, 79, 0.3) !important;
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+.logout-icon {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover .logout-icon {
+  transform: scale(1.05);
+}
+
+/* Main */
+.main {
+  flex: 1;
+  padding: 28px;
+  overflow: auto;
+  background: var(--bg);
+  min-height: 100vh;
+}
+.view {
+  background: transparent;
+  padding: 6px 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets (601px - 900px) - Botones con texto, logout solo icono */
+@media (min-width: 601px) and (max-width: 900px) {
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    flex-direction: row;
+    padding: 10px 15px;
+    overflow-x: auto;
+    gap: 8px;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+  }
+  
+  .brand {
+    font-size: 18px;
+    margin-bottom: 0;
+    border-bottom: none;
+    border-right: 2px solid var(--soft);
+    padding-right: 12px;
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  
+  .menu {
+    flex-direction: row;
+    margin-top: 0;
+    flex: 1;
+    gap: 4px;
+    width: auto;
+  }
+  
+  /* Botones normales del menú (con texto) */
+  .menu-btn:not(.logout-btn) {
+    padding: 8px 12px;
+    height: 48px;
+    width: auto;
+    min-width: auto;
+    flex: 0 1 auto;
+    flex-direction: row;
+    gap: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: none;
+    background: transparent;
+  }
+  
+  .menu-btn:not(.logout-btn)::after {
+    display: block;
+  }
+  
+  .menu-btn:not(.logout-btn):hover {
+    background: var(--soft);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(47, 122, 122, 0.1);
+  }
+  
+  .menu-btn:not(.logout-btn).active {
+    background: var(--soft);
+    border-left: none;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 5px;
+    transform: none;
+    box-shadow: 0 4px 8px rgba(47, 122, 122, 0.1);
+  }
+  
+  .menu-icon {
+    font-size: 20px;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+  }
+  
+  /* Texto visible solo en botones normales */
+  .menu-btn:not(.logout-btn) span:not(.menu-icon) {
+    display: inline-block;
+    font-size: 13px;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .logout-container {
+    position: static;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  
+  /* Botón de logout - SOLO ICONO en tablets */
+  .logout-btn {
+    padding: 8px !important;
+    height: 48px !important;
+    width: auto !important;
+    min-width: 48px !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-size: 0 !important; /* Oculta el texto */
+    white-space: nowrap !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+  }
+  
+  .logout-btn::after {
+    display: block !important;
+  }
+  
+  .logout-btn:hover {
+    background: #d9534f !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(217, 83, 79, 0.2) !important;
+  }
+  
+  .logout-icon {
+    font-size: 22px !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+  }
+  
+  /* Ocultar el texto del logout en tablets */
+  .logout-btn span:not(.logout-icon) {
+    display: none !important;
+  }
+  
+  .main {
+    padding: 20px;
+  }
+}
+
+
+/* Móviles (hasta 600px) - SOLO ICONOS EN HORIZONTAL */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    flex-direction: row;
+    padding: 6px 10px;
+    overflow-x: auto;
+    gap: 4px;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+  }
+  
+  .brand {
+    font-size: 14px;
+    margin-bottom: 0;
+    border-bottom: none;
+    border-right: 2px solid var(--soft);
+    padding-right: 8px;
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+  
+  .menu {
+    flex-direction: row;
+    margin-top: 0;
+    flex: 1;
+    gap: 2px;
+    width: auto;
+  }
+  
+  .menu-btn {
+    padding: 6px 8px;
+    height: 42px;
+    width: auto;
+    min-width: 42px;
+    flex: 0 1 auto;
+    flex-direction: row; /* HORIZONTAL */
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    font-size: 0;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 8px;
+  }
+  
+  .menu-btn::after {
+    display: none;
+  }
+  
+  .menu-btn:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .menu-btn.active {
+    background: var(--soft);
+    border-left: none;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 3px;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .menu-icon {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+  }
+  
+  .menu-btn.active .menu-icon,
+  .menu-btn:hover .menu-icon {
+    color: var(--accent);
+    transform: none;
+  }
+  
+  .menu-btn span:not(.menu-icon) {
+    display: none;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .logout-container {
+    position: static;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  
+  .logout-btn {
+    padding: 6px 8px !important;
+    height: 42px !important;
+    width: auto !important;
+    min-width: 42px !important;
+    flex-direction: row !important; /* HORIZONTAL */
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-size: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+  }
+  
+  .logout-btn::after {
+    display: none;
+  }
+  
+  .logout-btn:hover {
+    background: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .logout-icon {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    color: #d9534f;
+  }
+  
+  .logout-btn:hover .logout-icon {
+    color: #c9302c;
+    transform: none;
+  }
+  
+  .logout-btn span:not(.logout-icon) {
+    display: none;
+  }
+  
+  .main {
+    padding: 12px;
+  }
+}
