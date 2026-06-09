@@ -180,15 +180,22 @@ function Dashboard() {
       />
       
       <main className="main">
-        {activeView === 'home' && <Inicio />}
-        {activeView === 'diagnose' && (
+        {/* 🔥 IMPORTANTE: Resultados SIEMPRE montado pero oculto con CSS */}
+        <div style={{ display: activeView === 'home' ? 'block' : 'none' }}>
+          <Inicio />
+        </div>
+        <div style={{ display: activeView === 'diagnose' ? 'block' : 'none' }}>
           <Diagnostico 
             onDiagnosisComplete={enableResultsButton}
             hasDiagnostics={hasDiagnostics}
           />
-        )}
-        {activeView === 'results' && <Resultados />}
-        {activeView === 'history' && <Historial onViewChange={setActiveView} />}
+        </div>
+        <div style={{ display: activeView === 'results' ? 'block' : 'none' }}>
+          <Resultados />
+        </div>
+        <div style={{ display: activeView === 'history' ? 'block' : 'none' }}>
+          <Historial onViewChange={setActiveView} />
+        </div>
       </main>
     </div>
   );

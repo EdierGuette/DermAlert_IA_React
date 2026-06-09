@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Chart from 'chart.js/auto';
 
 // Importar CSS
@@ -7,6 +7,8 @@ import '../css/resultados/user_info.css';
 import '../css/resultados/estadisticas.css';
 
 function Resultados() {
+  console.log('[RESULTADOS] Componente montado/rendered');
+  
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [selectedDiagnostico, setSelectedDiagnostico] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,6 @@ function Resultados() {
   const confidenceLineCanvasRef = useRef(null);
   const probChartCanvasRef = useRef(null);
   const specificClassesCanvasRef = useRef(null);
-  const scrollTimeoutRef = useRef(null);
   const chartInstancesRef = useRef({ probChart: null, specificChart: null });
 
   // Función para obtener el texto de riesgo según categoría
@@ -95,6 +96,7 @@ function Resultados() {
 
   // Destruir gráficas existentes
   const destroyDiagnosticoCharts = () => {
+    console.log('[RESULTADOS] Destruyendo gráficas existentes');
     if (chartInstancesRef.current.probChart) {
       chartInstancesRef.current.probChart.destroy();
       chartInstancesRef.current.probChart = null;
@@ -107,35 +109,44 @@ function Resultados() {
 
   // Dibujar gráficas del diagnóstico seleccionado
   const drawDiagnosticoCharts = (diagnostico) => {
-    if (!diagnostico) return;
+    console.log('[RESULTADOS] drawDiagnosticoCharts llamado');
+    if (!diagnostico) {
+      console.log('[RESULTADOS] No hay diagnóstico para dibujar gráficas');
+      return;
+    }
     
     destroyDiagnosticoCharts();
     
     const aggregated = aggregateProbs(diagnostico.probabilidades);
     const categories = ['Benigno', 'Maligno', 'Premaligno', 'Desconocido'];
     const categoryValues = [aggregated.Benigno, aggregated.Maligno, aggregated.Premaligno, aggregated.Desconocido];
+    console.log('[RESULTADOS] Valores agregados:', categoryValues);
 
     // Gráfica de categorías
     if (probChartCanvasRef.current) {
-      chartInstancesRef.current.probChart = new Chart(probChartCanvasRef.current, {
-        type: 'bar',
-        data: {
-          labels: categories,
-          datasets: [{
-            label: 'Probabilidad (%)',
-            data: categoryValues,
-            backgroundColor: ['rgba(40,167,69,0.7)', 'rgba(220,53,69,0.7)', 'rgba(255,140,0,0.7)', 'rgba(255,193,7,0.7)'],
-            borderColor: ['rgba(40,167,69,1)', 'rgba(220,53,69,1)', 'rgba(255,140,0,1)', 'rgba(255,193,7,1)'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Probabilidad (%)' } } },
-          plugins: { legend: { display: false } }
-        }
-      });
+      const ctx = probChartCanvasRef.current.getContext('2d');
+      if (ctx) {
+        chartInstancesRef.current.probChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: categories,
+            datasets: [{
+              label: 'Probabilidad (%)',
+              data: categoryValues,
+              backgroundColor: ['rgba(40,167,69,0.7)', 'rgba(220,53,69,0.7)', 'rgba(255,140,0,0.7)', 'rgba(255,193,7,0.7)'],
+              borderColor: ['rgba(40,167,69,1)', 'rgba(220,53,69,1)', 'rgba(255,140,0,1)', 'rgba(255,193,7,1)'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Probabilidad (%)' } } },
+            plugins: { legend: { display: false } }
+          }
+        });
+        console.log('[RESULTADOS] Gráfica de categorías creada');
+      }
     }
 
     // Gráfica de clases específicas
@@ -155,51 +166,78 @@ function Resultados() {
     const specificBorderColors = specificColors.map(c => c.replace('0.7', '1'));
 
     if (specificClassesCanvasRef.current) {
-      chartInstancesRef.current.specificChart = new Chart(specificClassesCanvasRef.current, {
-        type: 'bar',
-        data: {
-          labels: classNames,
-          datasets: [{
-            label: 'Probabilidad (%)',
-            data: specificProbs,
-            backgroundColor: specificColors,
-            borderColor: specificBorderColors,
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Probabilidad (%)' } },
-            x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+      const ctx = specificClassesCanvasRef.current.getContext('2d');
+      if (ctx) {
+        chartInstancesRef.current.specificChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: classNames,
+            datasets: [{
+              label: 'Probabilidad (%)',
+              data: specificProbs,
+              backgroundColor: specificColors,
+              borderColor: specificBorderColors,
+              borderWidth: 1
+            }]
           },
-          plugins: { legend: { display: false } }
-        }
-      });
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+              y: { beginAtZero: true, max: 100, title: { display: true, text: 'Probabilidad (%)' } },
+              x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+        console.log('[RESULTADOS] Gráfica de clases específicas creada');
+      }
     }
   };
 
-  // Mostrar diagnóstico específico
-  const showDiagnosticoInResults = (diagnostico) => {
-    console.log('showDiagnosticoInResults llamado con:', diagnostico);
-    setSelectedDiagnostico(diagnostico);
+  // Mostrar diagnóstico específico (función pública llamada desde Historial)
+  const showDiagnosticoInResults = useCallback((diagnostico) => {
+    console.log('[RESULTADOS] ========== showDiagnosticoInResults llamado ==========');
+    console.log('[RESULTADOS] Diagnóstico recibido:', diagnostico);
+    console.log('[RESULTADOS] ID del diagnóstico:', diagnostico.id);
+    console.log('[RESULTADOS] Categoría:', diagnostico.categoria);
+    console.log('[RESULTADOS] Clase:', diagnostico.clase);
     
-    // Esperar a que React actualice el DOM y luego dibujar gráficas
+    // Asegurar que la imagen tenga el formato correcto
+    const diagnosticoConImagen = {
+      ...diagnostico,
+      imagen: diagnostico.imagen?.startsWith('data:image') 
+        ? diagnostico.imagen 
+        : `data:image/jpeg;base64,${diagnostico.imagen}`
+    };
+    console.log('[RESULTADOS] Imagen formateada (primeros 100 chars):', diagnosticoConImagen.imagen?.substring(0, 100));
+    
+    console.log('[RESULTADOS] Actualizando estado selectedDiagnostico');
+    setSelectedDiagnostico(diagnosticoConImagen);
+    
+    // Scroll al resultado después de que React actualice el DOM
     setTimeout(() => {
-      drawDiagnosticoCharts(diagnostico);
-      // Scroll al resultado
+      console.log('[RESULTADOS] Realizando scroll al resultCard');
       const resultCard = document.getElementById('resultCard');
       if (resultCard) {
         resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        console.log('[RESULTADOS] Scroll completado');
+      } else {
+        console.log('[RESULTADOS] resultCard no encontrado en el DOM');
       }
-    }, 100);
-  };
+      // Dibujar gráficas
+      drawDiagnosticoCharts(diagnosticoConImagen);
+    }, 200);
+  }, []);
 
   // Dibujar gráficas agregadas (estadísticas generales)
   const drawAggregatedCharts = async () => {
+    console.log('[RESULTADOS] drawAggregatedCharts iniciado');
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      console.log('[RESULTADOS] No hay token, saliendo');
+      return;
+    }
 
     try {
       const response = await fetch('/api/diagnosticos/', {
@@ -209,10 +247,14 @@ function Resultados() {
       if (!response.ok) throw new Error('Error al cargar datos');
 
       const data = await response.json();
+      console.log('[RESULTADOS] Diagnósticos cargados:', data.length);
       setDiagnosticos(data);
       setLoading(false);
 
-      if (data.length === 0) return;
+      if (data.length === 0) {
+        console.log('[RESULTADOS] No hay diagnósticos para mostrar');
+        return;
+      }
 
       // Destruir gráficas existentes
       if (classDistChart) {
@@ -228,6 +270,7 @@ function Resultados() {
         const cat = d.categoria || 'Desconocido';
         counts[cat] = (counts[cat] || 0) + 1;
       });
+      console.log('[RESULTADOS] Distribución por categoría:', counts);
 
       const labels = Object.keys(counts);
       const countsData = labels.map(l => counts[l]);
@@ -278,6 +321,7 @@ function Resultados() {
           }
         });
         setClassDistChart(newChart);
+        console.log('[RESULTADOS] Gráfica de distribución creada');
       }
 
       // Gráfica de línea de confianza
@@ -287,6 +331,7 @@ function Resultados() {
         return date.toLocaleDateString('es-CO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       });
       const confs = sorted.map(d => d.confianza);
+      console.log('[RESULTADOS] Timeline de confianza:', timeline.length);
 
       if (confidenceLineCanvasRef.current) {
         const newChart = new Chart(confidenceLineCanvasRef.current, {
@@ -322,27 +367,57 @@ function Resultados() {
           }
         });
         setConfidenceLineChart(newChart);
+        console.log('[RESULTADOS] Gráfica de línea de confianza creada');
       }
     } catch (error) {
-      console.error('Error al cargar gráficas agregadas:', error);
+      console.error('[RESULTADOS] Error al cargar gráficas agregadas:', error);
       setLoading(false);
     }
   };
 
-  // Exponer función global
+  // Registrar función global y evento
   useEffect(() => {
+    console.log('[RESULTADOS] ========== useEffect DE REGISTRO ejecutado ==========');
+    console.log('[RESULTADOS] Registrando window.showDiagnosticoInResults');
+    
+    // Registrar función global
     window.showDiagnosticoInResults = showDiagnosticoInResults;
+    console.log('[RESULTADOS] window.showDiagnosticoInResults registrada correctamente');
+    console.log('[RESULTADOS] Tipo de window.showDiagnosticoInResults:', typeof window.showDiagnosticoInResults);
+    
+    // Verificar que se registró correctamente
+    if (typeof window.showDiagnosticoInResults === 'function') {
+      console.log('[RESULTADOS] ✅ VERIFICACIÓN: window.showDiagnosticoInResults ES UNA FUNCIÓN');
+    } else {
+      console.error('[RESULTADOS] ❌ ERROR: window.showDiagnosticoInResults NO ES UNA FUNCIÓN');
+    }
+    
+    // Disparar evento personalizado para notificar que el componente está listo
+    console.log('[RESULTADOS] Disparando evento resultadosReady');
+    const event = new CustomEvent('resultadosReady', { 
+      detail: { 
+        showDiagnosticoInResults,
+        timestamp: Date.now()
+      } 
+    });
+    window.dispatchEvent(event);
+    console.log('[RESULTADOS] Evento resultadosReady disparado');
+    
+    // Cargar gráficas agregadas
     drawAggregatedCharts();
     
     return () => {
+      console.log('[RESULTADOS] ========== useEffect LIMPIEZA ==========');
+      console.log('[RESULTADOS] Eliminando window.showDiagnosticoInResults');
+      delete window.showDiagnosticoInResults;
       if (classDistChart) classDistChart.destroy();
       if (confidenceLineChart) confidenceLineChart.destroy();
       destroyDiagnosticoCharts();
-      delete window.showDiagnosticoInResults;
     };
-  }, []);
+  }, [showDiagnosticoInResults]);
 
   if (loading) {
+    console.log('[RESULTADOS] Mostrando estado de carga');
     return (
       <section className="view" id="results">
         <h2 className="results-title">Resultados Detallados</h2>
@@ -351,6 +426,8 @@ function Resultados() {
     );
   }
 
+  console.log('[RESULTADOS] Renderizando componente, selectedDiagnostico:', !!selectedDiagnostico);
+  
   return (
     <section className="view" id="results">
       <h2 className="results-title">Resultados Detallados</h2>
@@ -407,11 +484,13 @@ function Resultados() {
               <div className="imagen-container-result">
                 {selectedDiagnostico && selectedDiagnostico.imagen ? (
                   <img 
-                    src={selectedDiagnostico.imagen.startsWith('data:image') ? 
-                      selectedDiagnostico.imagen : 
-                      `data:image/jpeg;base64,${selectedDiagnostico.imagen}`} 
+                    src={selectedDiagnostico.imagen} 
                     alt="Imagen del diagnóstico" 
                     className="imagen-preview-result" 
+                    onError={(e) => {
+                      console.error('[RESULTADOS] Error cargando imagen');
+                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="2" y="2" width="20" height="20" rx="2.18"%3E%3C/rect%3E%3Cpath d="M8 2v20M16 2v20M2 8h20M2 16h20"%3E%3C/path%3E%3C/svg%3E';
+                    }}
                   />
                 ) : (
                   <div className="no-image">No hay imagen disponible</div>

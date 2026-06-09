@@ -1,46 +1,26 @@
-/* ============================================
-   IMPORTAR TODOS TUS CSS EXISTENTES
-   ============================================ */
-
-/* Auth */
+/* Importar todos tus CSS existentes */
 @import './css/auth.css';
 @import './css/auth_modal.css';
-
-/* Diagnostico */
 @import './css/diagnostico/camara.css';
 @import './css/diagnostico/diagnostic_grafica.css';
 @import './css/diagnostico/manejo_archivos.css';
 @import './css/diagnostico/nivel_riesgo.css';
-
-/* Historial */
 @import './css/historial/filtro_busqueda_id_cedula.css';
 @import './css/historial/filtro_mostrar.css';
 @import './css/historial/tabla.css';
 @import './css/historial/total_diagnostics.css';
-
-/* Inicio */
 @import './css/inicio/body.css';
 @import './css/inicio/footer.css';
-
-/* Resultados */
 @import './css/resultados/estadisticas.css';
 @import './css/resultados/header.css';
 @import './css/resultados/user_info.css';
-
-/* Styles (globales del dashboard) */
 @import './css/styles/dashboard.css';
 @import './css/styles/global.css';
 @import './css/styles/logout.css';
-
-/* Landing Page */
 @import './css/landing_page/landing.css';
 @import './css/landing_page/landing-responsive.css';
 @import './css/landing_page/contacto.css';
 @import './css/landing_page/estadisticas.css';
-
-/* ============================================
-   ESTILOS GLOBALES ADICIONALES
-   ============================================ */
 
 /* Reset básico */
 * {
@@ -49,27 +29,6 @@
   box-sizing: border-box;
 }
 
-/* Estilos de carga mientras React monta la app */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  color: #2f7a7a;
-  font-size: 18px;
-}
-
-/* Asegurar que SweetAlert esté por encima de todo */
-.swal2-container {
-  z-index: 20000 !important;
-}
-
-.swal2-popup {
-  z-index: 20001 !important;
-}
-
-/* Eliminar cualquier borde o límite de ancho en #root */
 #root {
   width: 100%;
   max-width: 100%;
