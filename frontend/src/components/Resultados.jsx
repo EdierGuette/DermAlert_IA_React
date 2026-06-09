@@ -6,9 +6,10 @@ import '../css/resultados/header.css';
 import '../css/resultados/user_info.css';
 import '../css/resultados/estadisticas.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Resultados() {
-  console.log('[RESULTADOS] Componente montado/rendered');
-  
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [selectedDiagnostico, setSelectedDiagnostico] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,17 @@ function Resultados() {
   const probChartCanvasRef = useRef(null);
   const specificClassesCanvasRef = useRef(null);
   const chartInstancesRef = useRef({ probChart: null, specificChart: null });
+
+  // Log de montaje/desmontaje
+  useEffect(() => {
+    errorCapture.logAction('Resultados', 'MOUNT', 'Componente Resultados montado');
+    return () => {
+      errorCapture.logAction('Resultados', 'UNMOUNT', 'Componente Resultados desmontado');
+      if (classDistChart) classDistChart.destroy();
+      if (confidenceLineChart) confidenceLineChart.destroy();
+      destroyDiagnosticoCharts();
+    };
+  }, []);
 
   // Función para obtener el texto de riesgo según categoría
   const getRiskText = (categoria) => {
@@ -96,7 +108,7 @@ function Resultados() {
 
   // Destruir gráficas existentes
   const destroyDiagnosticoCharts = () => {
-    console.log('[RESULTADOS] Destruyendo gráficas existentes');
+    errorCapture.logAction('Resultados', 'DESTROY_CHARTS', 'Destruyendo gráficas de diagnóstico');
     if (chartInstancesRef.current.probChart) {
       chartInstancesRef.current.probChart.destroy();
       chartInstancesRef.current.probChart = null;
@@ -109,9 +121,12 @@ function Resultados() {
 
   // Dibujar gráficas del diagnóstico seleccionado
   const drawDiagnosticoCharts = (diagnostico) => {
-    console.log('[RESULTADOS] drawDiagnosticoCharts llamado');
+    errorCapture.logAction('Resultados', 'DRAW_CHARTS_START', 'Dibujando gráficas para diagnóstico', {
+      diagnostico_id: diagnostico?.id
+    });
+    
     if (!diagnostico) {
-      console.log('[RESULTADOS] No hay diagnóstico para dibujar gráficas');
+      errorCapture.logWarning('Resultados', 'DRAW_CHARTS_NO_DATA', 'No hay diagnóstico para dibujar gráficas');
       return;
     }
     
@@ -120,7 +135,13 @@ function Resultados() {
     const aggregated = aggregateProbs(diagnostico.probabilidades);
     const categories = ['Benigno', 'Maligno', 'Premaligno', 'Desconocido'];
     const categoryValues = [aggregated.Benigno, aggregated.Maligno, aggregated.Premaligno, aggregated.Desconocido];
-    console.log('[RESULTADOS] Valores agregados:', categoryValues);
+    
+    errorCapture.logAction('Resultados', 'CHART_VALUES', 'Valores agregados para gráfica', {
+      benigno: aggregated.Benigno,
+      maligno: aggregated.Maligno,
+      premaligno: aggregated.Premaligno,
+      desconocido: aggregated.Desconocido
+    });
 
     // Gráfica de categorías
     if (probChartCanvasRef.current) {
@@ -145,7 +166,7 @@ function Resultados() {
             plugins: { legend: { display: false } }
           }
         });
-        console.log('[RESULTADOS] Gráfica de categorías creada');
+        errorCapture.logAction('Resultados', 'CATEGORY_CHART_DRAWN', 'Gráfica de categorías creada');
       }
     }
 
@@ -190,18 +211,19 @@ function Resultados() {
             plugins: { legend: { display: false } }
           }
         });
-        console.log('[RESULTADOS] Gráfica de clases específicas creada');
+        errorCapture.logAction('Resultados', 'SPECIFIC_CHART_DRAWN', 'Gráfica de clases específicas creada');
       }
     }
   };
 
   // Mostrar diagnóstico específico (función pública llamada desde Historial)
   const showDiagnosticoInResults = useCallback((diagnostico) => {
-    console.log('[RESULTADOS] ========== showDiagnosticoInResults llamado ==========');
-    console.log('[RESULTADOS] Diagnóstico recibido:', diagnostico);
-    console.log('[RESULTADOS] ID del diagnóstico:', diagnostico.id);
-    console.log('[RESULTADOS] Categoría:', diagnostico.categoria);
-    console.log('[RESULTADOS] Clase:', diagnostico.clase);
+    errorCapture.logAction('Resultados', 'SHOW_DIAGNOSTIC_START', 'Mostrando diagnóstico específico', {
+      diagnostico_id: diagnostico.id,
+      categoria: diagnostico.categoria,
+      clase: diagnostico.clase,
+      confianza: diagnostico.confianza
+    });
     
     // Asegurar que la imagen tenga el formato correcto
     const diagnosticoConImagen = {
@@ -210,49 +232,55 @@ function Resultados() {
         ? diagnostico.imagen 
         : `data:image/jpeg;base64,${diagnostico.imagen}`
     };
-    console.log('[RESULTADOS] Imagen formateada (primeros 100 chars):', diagnosticoConImagen.imagen?.substring(0, 100));
     
-    console.log('[RESULTADOS] Actualizando estado selectedDiagnostico');
+    errorCapture.logAction('Resultados', 'SELECT_DIAGNOSTIC', 'Actualizando estado selectedDiagnostico');
     setSelectedDiagnostico(diagnosticoConImagen);
     
     // Scroll al resultado después de que React actualice el DOM
     setTimeout(() => {
-      console.log('[RESULTADOS] Realizando scroll al resultCard');
+      errorCapture.logAction('Resultados', 'SCROLL_TO_RESULT', 'Realizando scroll al resultCard');
       const resultCard = document.getElementById('resultCard');
       if (resultCard) {
         resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        console.log('[RESULTADOS] Scroll completado');
+        errorCapture.logAction('Resultados', 'SCROLL_COMPLETED', 'Scroll completado correctamente');
       } else {
-        console.log('[RESULTADOS] resultCard no encontrado en el DOM');
+        errorCapture.logWarning('Resultados', 'SCROLL_FAILED', 'resultCard no encontrado en el DOM');
       }
-      // Dibujar gráficas
       drawDiagnosticoCharts(diagnosticoConImagen);
     }, 200);
   }, []);
 
   // Dibujar gráficas agregadas (estadísticas generales)
   const drawAggregatedCharts = async () => {
-    console.log('[RESULTADOS] drawAggregatedCharts iniciado');
+    errorCapture.logAction('Resultados', 'AGGREGATED_CHARTS_START', 'Cargando gráficas agregadas');
     const token = localStorage.getItem('token');
     if (!token) {
-      console.log('[RESULTADOS] No hay token, saliendo');
+      errorCapture.logWarning('Resultados', 'NO_TOKEN', 'No hay token para cargar gráficas agregadas');
       return;
     }
+
+    const startTime = Date.now();
 
     try {
       const response = await fetch('/api/diagnosticos/', {
         headers: { 'Authorization': `Token ${token}` }
       });
 
+      const duration = Date.now() - startTime;
+
       if (!response.ok) throw new Error('Error al cargar datos');
 
       const data = await response.json();
-      console.log('[RESULTADOS] Diagnósticos cargados:', data.length);
+      errorCapture.logAction('Resultados', 'DIAGNOSTICS_LOADED', 'Diagnósticos cargados para gráficas', {
+        cantidad: data.length,
+        duration_ms: duration
+      });
+      
       setDiagnosticos(data);
       setLoading(false);
 
       if (data.length === 0) {
-        console.log('[RESULTADOS] No hay diagnósticos para mostrar');
+        errorCapture.logAction('Resultados', 'NO_DIAGNOSTICS', 'No hay diagnósticos para mostrar en gráficas');
         return;
       }
 
@@ -270,7 +298,8 @@ function Resultados() {
         const cat = d.categoria || 'Desconocido';
         counts[cat] = (counts[cat] || 0) + 1;
       });
-      console.log('[RESULTADOS] Distribución por categoría:', counts);
+      
+      errorCapture.logAction('Resultados', 'CATEGORY_DISTRIBUTION', 'Distribución por categoría', counts);
 
       const labels = Object.keys(counts);
       const countsData = labels.map(l => counts[l]);
@@ -321,7 +350,7 @@ function Resultados() {
           }
         });
         setClassDistChart(newChart);
-        console.log('[RESULTADOS] Gráfica de distribución creada');
+        errorCapture.logAction('Resultados', 'PIE_CHART_DRAWN', 'Gráfica de pastel creada');
       }
 
       // Gráfica de línea de confianza
@@ -331,7 +360,13 @@ function Resultados() {
         return date.toLocaleDateString('es-CO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       });
       const confs = sorted.map(d => d.confianza);
-      console.log('[RESULTADOS] Timeline de confianza:', timeline.length);
+      
+      errorCapture.logAction('Resultados', 'CONFIDENCE_TIMELINE', 'Timeline de confianza cargada', {
+        points: timeline.length,
+        min_confidence: Math.min(...confs),
+        max_confidence: Math.max(...confs),
+        avg_confidence: confs.reduce((a,b) => a + b, 0) / confs.length
+      });
 
       if (confidenceLineCanvasRef.current) {
         const newChart = new Chart(confidenceLineCanvasRef.current, {
@@ -367,33 +402,30 @@ function Resultados() {
           }
         });
         setConfidenceLineChart(newChart);
-        console.log('[RESULTADOS] Gráfica de línea de confianza creada');
+        errorCapture.logAction('Resultados', 'LINE_CHART_DRAWN', 'Gráfica de línea de confianza creada');
       }
     } catch (error) {
-      console.error('[RESULTADOS] Error al cargar gráficas agregadas:', error);
+      errorCapture.logError('Resultados', 'AGGREGATED_CHARTS_ERROR', 'Error cargando gráficas agregadas', {
+        error_message: error.message,
+        error_stack: error.stack
+      });
       setLoading(false);
     }
   };
 
   // Registrar función global y evento
   useEffect(() => {
-    console.log('[RESULTADOS] ========== useEffect DE REGISTRO ejecutado ==========');
-    console.log('[RESULTADOS] Registrando window.showDiagnosticoInResults');
+    errorCapture.logAction('Resultados', 'REGISTER_GLOBAL_FUNCTION', 'Registrando window.showDiagnosticoInResults');
     
     // Registrar función global
     window.showDiagnosticoInResults = showDiagnosticoInResults;
-    console.log('[RESULTADOS] window.showDiagnosticoInResults registrada correctamente');
-    console.log('[RESULTADOS] Tipo de window.showDiagnosticoInResults:', typeof window.showDiagnosticoInResults);
     
-    // Verificar que se registró correctamente
-    if (typeof window.showDiagnosticoInResults === 'function') {
-      console.log('[RESULTADOS] ✅ VERIFICACIÓN: window.showDiagnosticoInResults ES UNA FUNCIÓN');
-    } else {
-      console.error('[RESULTADOS] ❌ ERROR: window.showDiagnosticoInResults NO ES UNA FUNCIÓN');
-    }
+    errorCapture.logAction('Resultados', 'FUNCTION_REGISTERED', 'Función registrada correctamente', {
+      type: typeof window.showDiagnosticoInResults
+    });
     
     // Disparar evento personalizado para notificar que el componente está listo
-    console.log('[RESULTADOS] Disparando evento resultadosReady');
+    errorCapture.logAction('Resultados', 'DISPATCH_EVENT', 'Disparando evento resultadosReady');
     const event = new CustomEvent('resultadosReady', { 
       detail: { 
         showDiagnosticoInResults,
@@ -401,14 +433,12 @@ function Resultados() {
       } 
     });
     window.dispatchEvent(event);
-    console.log('[RESULTADOS] Evento resultadosReady disparado');
     
     // Cargar gráficas agregadas
     drawAggregatedCharts();
     
     return () => {
-      console.log('[RESULTADOS] ========== useEffect LIMPIEZA ==========');
-      console.log('[RESULTADOS] Eliminando window.showDiagnosticoInResults');
+      errorCapture.logAction('Resultados', 'CLEANUP', 'Limpiando recursos y función global');
       delete window.showDiagnosticoInResults;
       if (classDistChart) classDistChart.destroy();
       if (confidenceLineChart) confidenceLineChart.destroy();
@@ -417,7 +447,7 @@ function Resultados() {
   }, [showDiagnosticoInResults]);
 
   if (loading) {
-    console.log('[RESULTADOS] Mostrando estado de carga');
+    errorCapture.logAction('Resultados', 'LOADING_STATE', 'Mostrando estado de carga');
     return (
       <section className="view" id="results">
         <h2 className="results-title">Resultados Detallados</h2>
@@ -426,7 +456,10 @@ function Resultados() {
     );
   }
 
-  console.log('[RESULTADOS] Renderizando componente, selectedDiagnostico:', !!selectedDiagnostico);
+  errorCapture.logAction('Resultados', 'RENDER', 'Renderizando componente', {
+    hasSelectedDiagnostico: !!selectedDiagnostico,
+    totalDiagnosticos: diagnosticos.length
+  });
   
   return (
     <section className="view" id="results">
@@ -488,7 +521,10 @@ function Resultados() {
                     alt="Imagen del diagnóstico" 
                     className="imagen-preview-result" 
                     onError={(e) => {
-                      console.error('[RESULTADOS] Error cargando imagen');
+                      errorCapture.logError('Resultados', 'IMAGE_LOAD_ERROR', 'Error cargando imagen', {
+                        diagnostico_id: selectedDiagnostico?.id,
+                        src_length: selectedDiagnostico?.imagen?.length
+                      });
                       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="2" y="2" width="20" height="20" rx="2.18"%3E%3C/rect%3E%3Cpath d="M8 2v20M16 2v20M2 8h20M2 16h20"%3E%3C/path%3E%3C/svg%3E';
                     }}
                   />

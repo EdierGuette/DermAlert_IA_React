@@ -30,19 +30,21 @@ INSTALLED_APPS = [
     'app.src.landing_page',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',  # ← Necesario para React
+    'corsheaders',
 ]
 
+# ===== MIDDLEWARE (CON LOGGING AL PRINCIPIO) =====
 MIDDLEWARE = [
+    'app.src.diagnostics.middleware.HTTPLoggingMiddleware',  # ✅ NUEVO: Logs de HTTP (primero)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ← MUY IMPORTANTE: antes de CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'app.src.diagnostics.middleware.AuthRequiredMiddleware',
+    'app.src.diagnostics.middleware.AuthRequiredMiddleware',  # Tu middleware existente
 ]
 
 ROOT_URLCONF = 'app.src.skin_cancer_dashboard.urls'
@@ -115,10 +117,6 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'app' / 'src' / 'diagnostics' / 'static',
-#     BASE_DIR / 'app' / 'src' / 'landing_page' / 'static',
-# ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
@@ -129,17 +127,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'diagnostics.Usuario'
 
 # ===== CORS settings (para React) =====
-CORS_ALLOW_ALL_ORIGINS = True  # En desarrollo, permite cualquier origen
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# Si quieres especificar orígenes específicos en lugar de permitir todos:
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",  # Vite (React)
-#     "http://localhost:3000",  # React alternativo
-#     "http://127.0.0.1:5173",
-# ]
-
-# Métodos permitidos
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -149,7 +139,6 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# Headers permitidos
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -172,7 +161,6 @@ SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 
-# Seguridad de cookies
 SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
 SESSION_COOKIE_HTTPONLY = True
@@ -180,8 +168,6 @@ CSRF_COOKIE_HTTPONLY = True
 
 # Cache settings
 CACHE_MIDDLEWARE_SECONDS = 0
-CACHE_MIDDLEWARE_KEY_PREFIX = ''
-CACHE_MIDDLEWARE_ALIAS = 'default'
 
 # ===== CONFIGURACIÓN DE EMAIL =====
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -197,3 +183,32 @@ if DEBUG:
     import mimetypes
     mimetypes.add_type("text/css", ".css", True)
     mimetypes.add_type("text/javascript", ".js", True)
+
+# ============================================
+# ===== CONFIGURACIÓN DEL SISTEMA DE LOGS =====
+# ============================================
+
+# Importar y configurar el sistema de logs unificado
+import sys
+from pathlib import Path
+
+# Agregar backend a la ruta
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(BACKEND_DIR))
+
+# Inicializar el sistema de logs
+from backend_logger import configurar_logger, log
+
+# Configurar el logger
+LOGGER = configurar_logger()
+
+# Registrar inicio del servidor
+log('INFO', 'SISTEMA', '=' * 80)
+log('INFO', 'SISTEMA', '🚀 SERVIDOR DJANGO INICIADO')
+log('INFO', 'SISTEMA', f'📁 Archivo de logs: {BACKEND_DIR.parent / "logs" / "logsfront_back.log"}')
+log('INFO', 'SISTEMA', f'🔧 Modo DEBUG: {DEBUG}')
+log('INFO', 'SISTEMA', f'🌐 Hosts permitidos: {ALLOWED_HOSTS}')
+log('INFO', 'SISTEMA', '=' * 80)
+
+print(f"\n✅ Configuración de Django completada")
+print(f"📝 Sistema de logs inicializado correctamente\n")

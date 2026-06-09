@@ -1,3 +1,4 @@
+# landing_page/views.py
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -7,19 +8,36 @@ from django.views.decorators.cache import never_cache
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta, datetime
-from app.src.diagnostics.models import Usuario, Diagnostico
 import json
 import traceback
 
+# Importar sistema de logs
+import sys
+from pathlib import Path
+
+# Agregar backend a la ruta para importar backend_logger
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(BACKEND_DIR))
+from backend_logger import log, log_error
+
+# Importar modelos
+from app.src.diagnostics.models import Usuario, Diagnostico
+
+
+# ============================================
+# VISTAS PRINCIPALES
+# ============================================
+
 @never_cache
 def landing_view(request):
-    """Vista principal de la landing page - React tomará el control"""
-    print("=== LANDING_VIEW ===")
-
+    """Vista principal de la landing page"""
+    
+    log('INFO', 'LANDING', f'Acceso a landing page desde IP: {request.META.get("REMOTE_ADDR")}')
+    
     if request.user.is_authenticated:
-        print("Usuario autenticado, redirigiendo a dashboard")
+        log('INFO', 'LANDING', f'Usuario autenticado redirigido a dashboard: {request.user.identificacion}')
         return redirect('/dashboard/')
-
+    
     response = render(request, 'landing_page/landing.html', {
         'PROJECT_NAME': settings.PROJECT_NAME,
         'LOGO_ICON': settings.LOGO_ICON,
@@ -27,17 +45,21 @@ def landing_view(request):
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
     return response
 
+
 @never_cache
 def qr_redirect_view(request):
-    """Vista para manejar el escaneo del QR - React tomará el control"""
-    print("=== QR_REDIRECT_VIEW ===")
-
+    """Vista para manejar el escaneo del QR"""
+    
+    log('INFO', 'LANDING', f'Acceso por QR desde IP: {request.META.get("REMOTE_ADDR")}')
+    
     if request.user.is_authenticated:
-        print("Usuario ya autenticado, redirigiendo a dashboard con diagnóstico activo")
+        log('INFO', 'LANDING', f'Usuario autenticado por QR, redirigiendo a dashboard con diagnóstico: {request.user.identificacion}')
         response = redirect('/dashboard/')
         response.set_cookie('open_diagnostico', 'true', max_age=5)
         return response
-
+    
+    log('INFO', 'LANDING', 'Usuario no autenticado, mostrando página de registro/login por QR')
+    
     response = render(request, 'landing_page/qr_landing.html', {
         'PROJECT_NAME': settings.PROJECT_NAME,
         'LOGO_ICON': settings.LOGO_ICON,
@@ -45,35 +67,52 @@ def qr_redirect_view(request):
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
     return response
 
+
+# ============================================
+# API - ENVÍO DE CONTACTO
+# ============================================
+
 @csrf_exempt
 def enviar_contacto(request):
-    """API para enviar mensajes de contacto por correo - VERSIÓN MEJORADA"""
+    """API para enviar mensajes de contacto por correo"""
+    
     if request.method == 'POST':
+        start_time = datetime.now()
+        
+        log('INFO', 'CONTACTO', 'Nuevo mensaje de contacto recibido')
+        
         try:
             data = json.loads(request.body)
-
+            
             nombre = data.get('nombre', '').strip()
             email = data.get('email', '').strip()
             telefono = data.get('telefono', '').strip()
             mensaje = data.get('mensaje', '').strip()
-
+            
+            # Validaciones
             if not nombre or not email or not mensaje:
+                log('WARNING', 'CONTACTO', 'Campos obligatorios faltantes', {
+                    'nombre': bool(nombre),
+                    'email': bool(email),
+                    'mensaje': bool(mensaje)
+                })
                 return JsonResponse({
                     'success': False,
                     'error': 'Por favor completa los campos obligatorios'
                 }, status=400)
-
+            
             if '@' not in email or '.' not in email:
+                log('WARNING', 'CONTACTO', f'Email inválido: {email}')
                 return JsonResponse({
                     'success': False,
                     'error': 'Por favor ingresa un correo electrónico válido'
                 }, status=400)
-
+            
             # Usar el nombre del proyecto desde settings
             project_name = settings.PROJECT_NAME
             asunto = f'Nuevo mensaje de {nombre} - {project_name}'
-
-            # HTML del correo (con el nombre dinámico)
+            
+            # HTML del correo
             cuerpo = f"""
             <!DOCTYPE html>
             <html lang="es">
@@ -280,11 +319,6 @@ def enviar_contacto(request):
                             </div>
                             <div class="message-box">
                                 <div class="message-title">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="7 10 12 15 17 10"></polyline>
-                                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                                    </svg>
                                     Mensaje
                                 </div>
                                 <div class="message-content">
@@ -305,7 +339,7 @@ def enviar_contacto(request):
             </body>
             </html>
             """
-
+            
             send_mail(
                 asunto,
                 '',
@@ -314,95 +348,135 @@ def enviar_contacto(request):
                 html_message=cuerpo,
                 fail_silently=False,
             )
-
+            
+            duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            
+            log('INFO', 'CONTACTO', f'Mensaje enviado exitosamente', {
+                'nombre': nombre,
+                'email': email,
+                'telefono': telefono or 'No',
+                'duration_ms': duration_ms
+            })
+            
             return JsonResponse({
                 'success': True,
                 'message': '¡Mensaje enviado correctamente! Te contactaremos pronto.'
             })
-
-        except json.JSONDecodeError:
+            
+        except json.JSONDecodeError as e:
+            log_error('CONTACTO', 'Error decodificando JSON', e)
             return JsonResponse({
                 'success': False,
                 'error': 'Error en el formato de los datos enviados'
             }, status=400)
-
+            
         except Exception as e:
-            print(f"Error enviando correo: {str(e)}")
-            print(traceback.format_exc())
+            duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            log_error('CONTACTO', f'Error enviando correo', e, {
+                'duration_ms': duration_ms
+            })
             return JsonResponse({
                 'success': False,
                 'error': 'Hubo un error al enviar el mensaje. Por favor intenta más tarde.'
             }, status=500)
-
+    
+    log('WARNING', 'CONTACTO', f'Método no permitido: {request.method}')
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
+# ============================================
+# API - ESTADÍSTICAS PÚBLICAS
+# ============================================
+
 def api_estadisticas(request):
-    """API pública que retorna estadísticas para la landing page (con zona horaria corregida y sin horarios)"""
-    # Obtener fecha y hora actual en la zona horaria de Bogotá
-    ahora = timezone.localtime(timezone.now())
-    hoy = ahora.date()
-    inicio_mes = hoy.replace(day=1)
-
-    # Usuarios hoy (desde las 00:00:00 hasta las 23:59:59 en hora local)
-    tz = timezone.get_current_timezone()
-    inicio_hoy = timezone.make_aware(datetime.combine(hoy, datetime.min.time()), tz)
-    fin_hoy = timezone.make_aware(datetime.combine(hoy, datetime.max.time()), tz)
-    usuarios_hoy = Usuario.objects.filter(fecha_creacion__range=(inicio_hoy, fin_hoy)).count()
-
-    # Usuarios este mes
-    usuarios_mes = Usuario.objects.filter(fecha_creacion__date__gte=inicio_mes).count()
-
-    # Consultas a la IA hoy (diagnósticos)
-    consultas_hoy = Diagnostico.objects.filter(fecha__range=(inicio_hoy, fin_hoy)).count()
-
-    # Consultas totales (histórico de todos los diagnósticos)
-    consultas_totales = Diagnostico.objects.all().count()
-
-    # Usuarios por día (últimos 7 días)
-    usuarios_por_dia = []
-    dias_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-    for i in range(6, -1, -1):
-        dia = hoy - timedelta(days=i)
-        inicio_dia = timezone.make_aware(datetime.combine(dia, datetime.min.time()), tz)
-        fin_dia = timezone.make_aware(datetime.combine(dia, datetime.max.time()), tz)
-        count = Usuario.objects.filter(fecha_creacion__range=(inicio_dia, fin_dia)).count()
-        usuarios_por_dia.append({
-            'fecha': dias_semana[dia.weekday()],
-            'count': count
+    """API pública que retorna estadísticas para la landing page"""
+    
+    start_time = datetime.now()
+    
+    log('INFO', 'ESTADISTICAS', 'Solicitud de estadísticas públicas')
+    
+    try:
+        # Obtener fecha y hora actual en la zona horaria de Bogotá
+        ahora = timezone.localtime(timezone.now())
+        hoy = ahora.date()
+        inicio_mes = hoy.replace(day=1)
+        
+        # Usuarios hoy (desde las 00:00:00 hasta las 23:59:59 en hora local)
+        tz = timezone.get_current_timezone()
+        inicio_hoy = timezone.make_aware(datetime.combine(hoy, datetime.min.time()), tz)
+        fin_hoy = timezone.make_aware(datetime.combine(hoy, datetime.max.time()), tz)
+        usuarios_hoy = Usuario.objects.filter(fecha_creacion__range=(inicio_hoy, fin_hoy)).count()
+        
+        # Usuarios este mes
+        usuarios_mes = Usuario.objects.filter(fecha_creacion__date__gte=inicio_mes).count()
+        
+        # Consultas a la IA hoy (diagnósticos)
+        consultas_hoy = Diagnostico.objects.filter(fecha__range=(inicio_hoy, fin_hoy)).count()
+        
+        # Consultas totales (histórico de todos los diagnósticos)
+        consultas_totales = Diagnostico.objects.all().count()
+        
+        # Usuarios por día (últimos 7 días)
+        usuarios_por_dia = []
+        dias_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+        for i in range(6, -1, -1):
+            dia = hoy - timedelta(days=i)
+            inicio_dia = timezone.make_aware(datetime.combine(dia, datetime.min.time()), tz)
+            fin_dia = timezone.make_aware(datetime.combine(dia, datetime.max.time()), tz)
+            count = Usuario.objects.filter(fecha_creacion__range=(inicio_dia, fin_dia)).count()
+            usuarios_por_dia.append({
+                'fecha': dias_semana[dia.weekday()],
+                'count': count
+            })
+        
+        # Top departamentos
+        top_departamentos = list(Usuario.objects.filter(
+            departamento__isnull=False,
+            departamento__gt=''
+        ).values('departamento').annotate(
+            count=Count('departamento')
+        ).order_by('-count')[:5])
+        
+        # Top ciudades
+        top_ciudades = list(Usuario.objects.filter(
+            ciudad__isnull=False,
+            ciudad__gt=''
+        ).values('ciudad').annotate(
+            count=Count('ciudad')
+        ).order_by('-count')[:5])
+        
+        # Distribución de clases en diagnósticos (últimos 30 días)
+        hace_30_dias = ahora - timedelta(days=30)
+        diagnosticos_recientes_30 = Diagnostico.objects.filter(fecha__gte=hace_30_dias)
+        distribucion_clases = {}
+        for d in diagnosticos_recientes_30:
+            cat = d.categoria
+            distribucion_clases[cat] = distribucion_clases.get(cat, 0) + 1
+        
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        
+        log('INFO', 'ESTADISTICAS', f'Estadísticas generadas exitosamente', {
+            'usuarios_hoy': usuarios_hoy,
+            'usuarios_mes': usuarios_mes,
+            'consultas_hoy': consultas_hoy,
+            'consultas_totales': consultas_totales,
+            'duration_ms': duration_ms
         })
-
-    # Top departamentos
-    top_departamentos = list(Usuario.objects.filter(
-        departamento__isnull=False,
-        departamento__gt=''
-    ).values('departamento').annotate(
-        count=Count('departamento')
-    ).order_by('-count')[:5])
-
-    # Top ciudades
-    top_ciudades = list(Usuario.objects.filter(
-        ciudad__isnull=False,
-        ciudad__gt=''
-    ).values('ciudad').annotate(
-        count=Count('ciudad')
-    ).order_by('-count')[:5])
-
-    # Distribución de clases en diagnósticos (últimos 30 días) - POR CATEGORÍA
-    hace_30_dias = ahora - timedelta(days=30)
-    diagnosticos_recientes_30 = Diagnostico.objects.filter(fecha__gte=hace_30_dias)
-    distribucion_clases = {}
-    for d in diagnosticos_recientes_30:
-        cat = d.categoria
-        distribucion_clases[cat] = distribucion_clases.get(cat, 0) + 1
-
-    return JsonResponse({
-        'usuarios_hoy': usuarios_hoy,
-        'usuarios_mes': usuarios_mes,
-        'consultas_hoy': consultas_hoy,
-        'consultas_totales': consultas_totales,
-        'usuarios_por_dia': usuarios_por_dia,
-        'top_departamentos': top_departamentos,
-        'top_ciudades': top_ciudades,
-        'distribucion_clases': distribucion_clases,
-    })
+        
+        return JsonResponse({
+            'usuarios_hoy': usuarios_hoy,
+            'usuarios_mes': usuarios_mes,
+            'consultas_hoy': consultas_hoy,
+            'consultas_totales': consultas_totales,
+            'usuarios_por_dia': usuarios_por_dia,
+            'top_departamentos': top_departamentos,
+            'top_ciudades': top_ciudades,
+            'distribucion_clases': distribucion_clases,
+        })
+        
+    except Exception as e:
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        log_error('ESTADISTICAS', f'Error generando estadísticas', e, {
+            'duration_ms': duration_ms
+        })
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)

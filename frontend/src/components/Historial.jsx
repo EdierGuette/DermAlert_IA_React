@@ -8,6 +8,9 @@ import '../css/historial/filtro_busqueda_id_cedula.css';
 import '../css/historial/filtro_mostrar.css';
 import '../css/historial/tabla.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 // Mapeo de clases a códigos CIE-10
 const cie10Mapping = {
   'Benigno General': 'D23.9',
@@ -57,8 +60,6 @@ const getConfidenceColor = (confidence) => {
 };
 
 function Historial({ onViewChange }) {
-  console.log('[HISTORIAL] Componente montado/rendered');
-  
   const [allDiagnosticos, setAllDiagnosticos] = useState([]);
   const [filteredDiagnosticos, setFilteredDiagnosticos] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,38 +77,58 @@ function Historial({ onViewChange }) {
   // Estado para saber si Resultados está listo
   const [resultadosReady, setResultadosReady] = useState(false);
 
+  // Log de montaje/desmontaje
+  useEffect(() => {
+    errorCapture.logAction('Historial', 'MOUNT', 'Componente Historial montado');
+    return () => {
+      errorCapture.logAction('Historial', 'UNMOUNT', 'Componente Historial desmontado');
+    };
+  }, []);
+
   const getCie10Code = (diagnostico) => {
     return diagnostico.codigo_cie10 || cie10Mapping[diagnostico.clase] || 'R22.9';
   };
 
   const loadDiagnosticos = useCallback(async () => {
-    console.log('[HISTORIAL] loadDiagnosticos iniciado');
+    errorCapture.logAction('Historial', 'LOAD_DIAGNOSTICOS_START', 'Cargando diagnósticos');
     const token = localStorage.getItem('token');
     if (!token) {
-      console.log('[HISTORIAL] No hay token');
+      errorCapture.logWarning('Historial', 'LOAD_DIAGNOSTICOS_NO_TOKEN', 'No hay token para cargar diagnósticos');
       return;
     }
     
     setLoading(true);
+    const startTime = Date.now();
+    
     try {
       const response = await fetch('/api/diagnosticos/', {
         headers: { 'Authorization': `Token ${token}` }
       });
       
+      const duration = Date.now() - startTime;
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('[HISTORIAL] Diagnósticos cargados:', data.length);
         setAllDiagnosticos(data);
         setTotalCount(data.length);
         applyFilters(data);
+        
+        errorCapture.logAction('Historial', 'LOAD_DIAGNOSTICOS_SUCCESS', 'Diagnósticos cargados exitosamente', {
+          cantidad: data.length,
+          duration_ms: duration
+        });
       } else if (response.status === 401) {
-        console.log('[HISTORIAL] Sesión expirada');
+        errorCapture.logWarning('Historial', 'SESSION_EXPIRED', 'Sesión expirada al cargar diagnósticos');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
       }
     } catch (error) {
-      console.error('[HISTORIAL] Error cargando diagnósticos:', error);
+      const duration = Date.now() - startTime;
+      errorCapture.logError('Historial', 'LOAD_DIAGNOSTICOS_ERROR', 'Error cargando diagnósticos', {
+        error_message: error.message,
+        duration_ms: duration
+      });
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -120,7 +141,11 @@ function Historial({ onViewChange }) {
   }, []);
 
   const applyFilters = (diagnosticos) => {
-    console.log('[HISTORIAL] applyFilters llamado, searchValue:', searchValue, 'searchType:', searchType);
+    errorCapture.logAction('Historial', 'APPLY_FILTERS_START', 'Aplicando filtros', {
+      searchValue: searchValue || 'ninguno',
+      searchType: searchType
+    });
+    
     let filtered = [...diagnosticos];
     
     if (searchValue) {
@@ -136,7 +161,12 @@ function Historial({ onViewChange }) {
           d.paciente_identificacion.toString().includes(searchValue)
         );
       }
-      console.log('[HISTORIAL] Filtrados:', filtered.length, 'de', diagnosticos.length);
+      errorCapture.logAction('Historial', 'FILTERS_RESULT', 'Resultado de filtros', {
+        original_count: diagnosticos.length,
+        filtered_count: filtered.length,
+        searchValue: searchValue,
+        searchType: searchType
+      });
     }
     
     filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -152,46 +182,51 @@ function Historial({ onViewChange }) {
   };
 
   useEffect(() => {
-    console.log('[HISTORIAL] useEffect: applyFilters triggered');
     applyFilters(allDiagnosticos);
   }, [searchValue, searchType, allDiagnosticos]);
 
   useEffect(() => {
-    console.log('[HISTORIAL] useEffect: loadDiagnosticos triggered');
     loadDiagnosticos();
   }, [loadDiagnosticos]);
 
   // Escuchar evento de que Resultados está listo
   useEffect(() => {
-    console.log('[HISTORIAL] useEffect: Configurando listener para resultadosReady');
+    errorCapture.logAction('Historial', 'SETUP_RESULTADOS_LISTENER', 'Configurando listener para resultadosReady');
     
     const handleResultadosReady = (event) => {
-      console.log('[HISTORIAL] ========== EVENTO resultadosReady RECIBIDO ==========');
-      console.log('[HISTORIAL] Timestamp del evento:', event.detail?.timestamp);
-      console.log('[HISTORIAL] showDiagnosticoInResults disponible:', !!event.detail?.showDiagnosticoInResults);
+      errorCapture.logAction('Historial', 'RESULTADOS_READY_EVENT', 'Evento resultadosReady recibido', {
+        timestamp: event.detail?.timestamp,
+        disponible: !!event.detail?.showDiagnosticoInResults
+      });
       setResultadosReady(true);
-      // También guardar la función global por si acaso
       if (event.detail?.showDiagnosticoInResults) {
         window.showDiagnosticoInResults = event.detail.showDiagnosticoInResults;
-        console.log('[HISTORIAL] Función showDiagnosticoInResults guardada desde evento');
+        errorCapture.logAction('Historial', 'FUNCTION_SAVED', 'Función showDiagnosticoInResults guardada desde evento');
       }
     };
     
     window.addEventListener('resultadosReady', handleResultadosReady);
     
     // También verificar si ya está disponible (por si el evento se perdió)
+    let checkCount = 0;
     const checkInterval = setInterval(() => {
+      checkCount++;
       if (typeof window.showDiagnosticoInResults === 'function') {
-        console.log('[HISTORIAL] ✅ showDiagnosticoInResults YA está disponible (verificación periódica)');
+        errorCapture.logAction('Historial', 'FUNCTION_AVAILABLE', 'showDiagnosticoInResults ya está disponible', {
+          check_attempts: checkCount
+        });
         setResultadosReady(true);
         clearInterval(checkInterval);
-      } else {
-        console.log('[HISTORIAL] ⏳ Esperando showDiagnosticoInResults... (verificación periódica)');
+      } else if (checkCount <= 20) {
+        // Solo log cada 5 intentos para no saturar
+        if (checkCount % 5 === 0) {
+          errorCapture.logAction('Historial', 'WAITING_FUNCTION', `Esperando función... intento ${checkCount}`);
+        }
       }
     }, 500);
     
     return () => {
-      console.log('[HISTORIAL] Limpiando listeners');
+      errorCapture.logAction('Historial', 'CLEANUP_LISTENERS', 'Limpiando listeners');
       window.removeEventListener('resultadosReady', handleResultadosReady);
       clearInterval(checkInterval);
     };
@@ -199,7 +234,12 @@ function Historial({ onViewChange }) {
 
   // Función para manejar "Ver resultados" con autenticación
   const handleViewResults = (diagnostico) => {
-    console.log('[HISTORIAL] handleViewResults llamado para diagnóstico ID:', diagnostico.id);
+    errorCapture.logAction('Historial', 'VIEW_RESULTS_CLICK', 'Usuario solicitó ver resultados', {
+      diagnostico_id: diagnostico.id,
+      categoria: diagnostico.categoria,
+      clase: diagnostico.clase,
+      confianza: diagnostico.confianza
+    });
     setPendingAction('view');
     setPendingDiagnostico(diagnostico);
     setAuthModalOpen(true);
@@ -207,7 +247,11 @@ function Historial({ onViewChange }) {
 
   // Función para manejar "Eliminar" con autenticación
   const handleDeleteClick = (diagnostico) => {
-    console.log('[HISTORIAL] handleDeleteClick llamado para diagnóstico ID:', diagnostico.id);
+    errorCapture.logAction('Historial', 'DELETE_CLICK', 'Usuario solicitó eliminar diagnóstico', {
+      diagnostico_id: diagnostico.id,
+      categoria: diagnostico.categoria,
+      clase: diagnostico.clase
+    });
     setPendingAction('delete');
     setPendingDiagnostico(diagnostico);
     setAuthModalOpen(true);
@@ -215,11 +259,11 @@ function Historial({ onViewChange }) {
 
   // Función que se ejecuta DESPUÉS de verificar la contraseña
   const handleAuthSuccess = () => {
-    console.log('[HISTORIAL] ========== handleAuthSuccess llamado ==========');
-    console.log('[HISTORIAL] pendingAction:', pendingAction);
-    console.log('[HISTORIAL] pendingDiagnostico ID:', pendingDiagnostico?.id);
-    console.log('[HISTORIAL] resultadosReady:', resultadosReady);
-    console.log('[HISTORIAL] typeof window.showDiagnosticoInResults:', typeof window.showDiagnosticoInResults);
+    errorCapture.logAction('Historial', 'AUTH_SUCCESS', 'Autenticación exitosa', {
+      pendingAction: pendingAction,
+      diagnostico_id: pendingDiagnostico?.id,
+      resultadosReady: resultadosReady
+    });
     
     if (pendingAction === 'view' && pendingDiagnostico) {
       // Asegurar formato correcto de la imagen
@@ -230,39 +274,44 @@ function Historial({ onViewChange }) {
           : `data:image/jpeg;base64,${pendingDiagnostico.imagen}`
       };
       
-      console.log('[HISTORIAL] Diagnóstico preparado, imagen formateada');
+      errorCapture.logAction('Historial', 'VIEW_RESULTS_AUTH', 'Mostrando resultados después de autenticación', {
+        diagnostico_id: pendingDiagnostico.id,
+        imagen_formateada: !!diagnosticoConImagen.imagen
+      });
       
       // Función con reintentos más robusta
       let intentoActual = 0;
       const maxIntentos = 15;
       
-      // Dentro de handleAuthSuccess, modifica la función mostrarResultados
       const mostrarResultados = () => {
-        console.log(`[HISTORIAL] Intento ${intentoActual + 1} de ${maxIntentos}`);
-        console.log('[HISTORIAL] Verificando window.showDiagnosticoInResults...');
-        
         if (typeof window.showDiagnosticoInResults === 'function') {
-          console.log(`[HISTORIAL] ✅ Función encontrada en intento ${intentoActual + 1}!`);
-          console.log('[HISTORIAL] Llamando a showDiagnosticoInResults...');
+          errorCapture.logAction('Historial', 'SHOW_RESULTS_SUCCESS', `Función encontrada en intento ${intentoActual + 1}`, {
+            diagnostico_id: pendingDiagnostico.id
+          });
           
-          // Pequeño delay adicional para asegurar que React termine de renderizar
           setTimeout(() => {
             window.showDiagnosticoInResults(diagnosticoConImagen);
-            console.log('[HISTORIAL] showDiagnosticoInResults ejecutado');
+            errorCapture.logAction('Historial', 'RESULTS_DISPLAYED', 'Resultados mostrados correctamente');
             
             if (onViewChange) {
-              console.log('[HISTORIAL] Cambiando vista a results');
+              errorCapture.logAction('Historial', 'CHANGE_VIEW_TO_RESULTS', 'Cambiando vista a resultados');
               onViewChange('results');
             }
           }, 100);
           
         } else if (intentoActual < maxIntentos - 1) {
           const delay = Math.min(300 * (intentoActual + 1), 3000);
-          console.log(`[HISTORIAL] ⏳ Función NO disponible, reintentando en ${delay}ms...`);
+          errorCapture.logAction('Historial', 'RETRY_SHOW_RESULTS', `Función no disponible, reintentando en ${delay}ms`, {
+            intento: intentoActual + 1,
+            delay_ms: delay
+          });
           intentoActual++;
           setTimeout(mostrarResultados, delay);
         } else {
-          console.error('[HISTORIAL] ❌ No se pudo encontrar showDiagnosticoInResults después de', maxIntentos, 'intentos');
+          errorCapture.logError('Historial', 'SHOW_RESULTS_FAILED', 'No se pudo mostrar resultados después de múltiples intentos', {
+            max_intentos: maxIntentos,
+            diagnostico_id: pendingDiagnostico.id
+          });
           Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -272,11 +321,12 @@ function Historial({ onViewChange }) {
         }
       };
       
-      // Iniciar los reintentos inmediatamente
       mostrarResultados();
       
     } else if (pendingAction === 'delete' && pendingDiagnostico) {
-      console.log('[HISTORIAL] Ejecutando eliminación');
+      errorCapture.logAction('Historial', 'DELETE_AUTH', 'Ejecutando eliminación después de autenticación', {
+        diagnostico_id: pendingDiagnostico.id
+      });
       deleteRecord(pendingDiagnostico.id, pendingDiagnostico.displayId);
     }
     
@@ -285,7 +335,11 @@ function Historial({ onViewChange }) {
   };
 
   const deleteRecord = async (id, displayId) => {
-    console.log('[HISTORIAL] deleteRecord llamado para ID:', id);
+    errorCapture.logAction('Historial', 'DELETE_START', 'Iniciando eliminación de diagnóstico', {
+      diagnostico_id: id,
+      display_id: displayId
+    });
+    
     const result = await Swal.fire({
       title: '¿Estás seguro?',
       text: "Esta acción eliminará permanentemente este diagnóstico del historial.",
@@ -298,15 +352,26 @@ function Historial({ onViewChange }) {
     });
     
     if (result.isConfirmed) {
+      errorCapture.logAction('Historial', 'DELETE_CONFIRMED', 'Usuario confirmó eliminación', {
+        diagnostico_id: id
+      });
+      
       const token = localStorage.getItem('token');
+      const startTime = Date.now();
+      
       try {
         const response = await fetch(`/api/diagnosticos/${id}/delete/`, {
           method: 'DELETE',
           headers: { 'Authorization': `Token ${token}` }
         });
         
+        const duration = Date.now() - startTime;
+        
         if (response.ok) {
-          console.log('[HISTORIAL] Diagnóstico eliminado exitosamente');
+          errorCapture.logAction('Historial', 'DELETE_SUCCESS', 'Diagnóstico eliminado exitosamente', {
+            diagnostico_id: id,
+            duration_ms: duration
+          });
           Swal.fire({
             title: '¡Eliminado!',
             text: 'El diagnóstico ha sido eliminado del historial.',
@@ -317,10 +382,19 @@ function Historial({ onViewChange }) {
           loadDiagnosticos();
         } else {
           const error = await response.json();
+          errorCapture.logError('Historial', 'DELETE_API_ERROR', 'Error en API de eliminación', {
+            diagnostico_id: id,
+            error: error.error,
+            status: response.status,
+            duration_ms: duration
+          });
           throw new Error(error.error || 'Error al eliminar');
         }
       } catch (error) {
-        console.error('[HISTORIAL] Error al eliminar:', error);
+        errorCapture.logError('Historial', 'DELETE_ERROR', 'Error al eliminar diagnóstico', {
+          diagnostico_id: id,
+          error_message: error.message
+        });
         Swal.fire({
           title: 'Error',
           text: 'No se pudo eliminar el diagnóstico: ' + error.message,
@@ -328,7 +402,37 @@ function Historial({ onViewChange }) {
           confirmButtonColor: '#d9534f'
         });
       }
+    } else {
+      errorCapture.logAction('Historial', 'DELETE_CANCELLED', 'Usuario canceló eliminación', {
+        diagnostico_id: id
+      });
     }
+  };
+
+  const handleSearchTypeChange = (type) => {
+    errorCapture.logAction('Historial', 'SEARCH_TYPE_CHANGE', `Cambiando tipo de búsqueda a: ${type}`);
+    setSearchType(type);
+    setSearchValue('');
+  };
+
+  const handleClearSearch = () => {
+    errorCapture.logAction('Historial', 'CLEAR_SEARCH', 'Limpiando búsqueda');
+    setSearchValue('');
+    applyFilters(allDiagnosticos);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    errorCapture.logAction('Historial', 'PAGE_SIZE_CHANGE', `Cambiando pageSize a: ${newSize}`);
+    setPageSize(parseInt(newSize));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage, direction) => {
+    errorCapture.logAction('Historial', 'PAGE_CHANGE', `Cambiando página ${direction}`, {
+      from: currentPage,
+      to: newPage
+    });
+    setCurrentPage(newPage);
   };
 
   const paginatedData = filteredDiagnosticos.slice(
@@ -337,8 +441,6 @@ function Historial({ onViewChange }) {
   );
   
   const totalPages = Math.ceil(filteredDiagnosticos.length / pageSize);
-  
-  console.log('[HISTORIAL] Renderizando tabla, diagnósticos a mostrar:', paginatedData.length);
 
   return (
     <>
@@ -352,21 +454,13 @@ function Historial({ onViewChange }) {
             <div className="search-tabs">
               <button 
                 className={`search-tab ${searchType === 'id' ? 'active' : ''}`}
-                onClick={() => {
-                  console.log('[HISTORIAL] Cambiando búsqueda a ID');
-                  setSearchType('id');
-                  setSearchValue('');
-                }}
+                onClick={() => handleSearchTypeChange('id')}
               >
                 Buscar por ID
               </button>
               <button 
                 className={`search-tab ${searchType === 'cedula' ? 'active' : ''}`}
-                onClick={() => {
-                  console.log('[HISTORIAL] Cambiando búsqueda a Cédula');
-                  setSearchType('cedula');
-                  setSearchValue('');
-                }}
+                onClick={() => handleSearchTypeChange('cedula')}
               >
                 Buscar por Cédula
               </button>
@@ -389,11 +483,7 @@ function Historial({ onViewChange }) {
               <button 
                 id="clearSearchBtn" 
                 className="clear-btn"
-                onClick={() => {
-                  console.log('[HISTORIAL] Limpiando búsqueda');
-                  setSearchValue('');
-                  applyFilters(allDiagnosticos);
-                }}
+                onClick={handleClearSearch}
               >
                 Limpiar
               </button>
@@ -405,14 +495,10 @@ function Historial({ onViewChange }) {
               id="resultsLimit" 
               className="filter-select"
               value={pageSize}
-              onChange={(e) => {
-                console.log('[HISTORIAL] Cambiando pageSize a:', e.target.value);
-                setPageSize(parseInt(e.target.value));
-                setCurrentPage(1);
-              }}
+              onChange={(e) => handlePageSizeChange(e.target.value)}
             >
               <option value="5">5 resultados</option>
-              <option value="10" selected>10 resultados</option>
+              <option value="10">10 resultados</option>
               <option value="25">25 resultados</option>
               <option value="50">50 resultados</option>
               <option value="100">100 resultados</option>
@@ -474,7 +560,7 @@ function Historial({ onViewChange }) {
                         <span className="confidence-value" style={{ fontWeight: 600, color: getConfidenceColor(diagnostico.confianza) }}>
                           {diagnostico.confianza}%
                         </span>
-                       </td>
+                      </td>
                       <td style={{ textAlign: 'center' }}>
                         <div className="actions-container" style={{ justifyContent: 'center' }}>
                           <button 
@@ -507,7 +593,7 @@ function Historial({ onViewChange }) {
               id="prevPageBtn" 
               className="pagination-btn" 
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
+              onClick={() => handlePageChange(currentPage - 1, 'anterior')}
             >
               ◀ Anterior
             </button>
@@ -518,7 +604,7 @@ function Historial({ onViewChange }) {
               id="nextPageBtn" 
               className="pagination-btn" 
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
+              onClick={() => handlePageChange(currentPage + 1, 'siguiente')}
             >
               Siguiente ▶
             </button>
@@ -530,17 +616,19 @@ function Historial({ onViewChange }) {
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => {
-          console.log('[HISTORIAL] Modal cerrado sin éxito');
+          errorCapture.logAction('Historial', 'MODAL_CLOSE', 'Modal de autenticación cerrado sin éxito');
           setAuthModalOpen(false);
           setPendingAction(null);
           setPendingDiagnostico(null);
         }}
         onVerify={(success) => {
-          console.log('[HISTORIAL] onVerify llamado, success:', success);
+          errorCapture.logAction('Historial', 'MODAL_VERIFY_RESULT', 'Resultado de verificación', {
+            success: success
+          });
           if (success) {
             handleAuthSuccess();
           } else {
-            console.log('[HISTORIAL] Verificación fallida');
+            errorCapture.logWarning('Historial', 'VERIFICATION_FAILED', 'Verificación de contraseña fallida');
           }
           setAuthModalOpen(false);
         }}

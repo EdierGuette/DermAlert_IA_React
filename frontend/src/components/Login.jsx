@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
@@ -6,16 +6,36 @@ import Swal from 'sweetalert2';
 import '../css/auth.css';
 import '../css/styles/global.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Login() {
     const [identificacion, setIdentificacion] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    // Log de montaje/desmontaje
+    useEffect(() => {
+        errorCapture.logAction('Login', 'MOUNT', 'Página de login montada');
+        return () => {
+            errorCapture.logAction('Login', 'UNMOUNT', 'Página de login desmontada');
+        };
+    }, []);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        errorCapture.logAction('Login', 'LOGIN_ATTEMPT', 'Intento de inicio de sesión', {
+            identificacion: identificacion,
+            hasPassword: !!password
+        });
+
         if (!identificacion || !password) {
+            errorCapture.logWarning('Login', 'VALIDATION_ERROR', 'Campos requeridos faltantes', {
+                hasIdentificacion: !!identificacion,
+                hasPassword: !!password
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos requeridos',
@@ -26,6 +46,9 @@ function Login() {
         }
 
         if (!/^[0-9]+$/.test(identificacion)) {
+            errorCapture.logWarning('Login', 'VALIDATION_ERROR', 'Formato de identificación inválido', {
+                identificacion: identificacion
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Formato inválido',
@@ -36,17 +59,32 @@ function Login() {
         }
 
         setLoading(true);
+        const startTime = Date.now();
 
         try {
+            errorCapture.logAction('Login', 'API_CALL_START', 'Llamando a API de login', {
+                endpoint: '/api/login/',
+                method: 'POST'
+            });
+
             const response = await fetch('/api/login/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ identificacion, password })
             });
 
+            const duration = Date.now() - startTime;
             const data = await response.json();
 
             if (response.ok) {
+                errorCapture.logAction('Login', 'LOGIN_SUCCESS', 'Inicio de sesión exitoso', {
+                    identificacion: identificacion,
+                    user_id: data.user?.id,
+                    user_rol: data.user?.rol,
+                    duration_ms: duration,
+                    project_name: data.project_name
+                });
+
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -67,18 +105,33 @@ function Login() {
                     showConfirmButton: false
                 });
 
+                errorCapture.logAction('Login', 'REDIRECT', 'Redirigiendo a dashboard');
                 navigate('/dashboard');
             } else {
                 let errorMsg = 'Credenciales incorrectas';
+                let errorType = 'unknown';
+                
                 if (response.status === 400 || response.status === 401) {
                     errorMsg = 'Contraseña incorrecta';
+                    errorType = 'invalid_credentials';
                 } else if (response.status === 403) {
                     errorMsg = 'No tienes permisos para acceder. Verifica tu cuenta.';
+                    errorType = 'forbidden';
                 } else if (response.status >= 500) {
                     errorMsg = 'Error del servidor. Por favor, intente más tarde.';
+                    errorType = 'server_error';
                 } else {
                     errorMsg = data.detail || data.error || 'Credenciales incorrectas';
+                    errorType = 'unknown';
                 }
+
+                errorCapture.logWarning('Login', 'LOGIN_FAILED', 'Inicio de sesión fallido', {
+                    identificacion: identificacion,
+                    status: response.status,
+                    error: errorMsg,
+                    error_type: errorType,
+                    duration_ms: duration
+                });
 
                 Swal.fire({
                     icon: 'error',
@@ -89,7 +142,14 @@ function Login() {
                 });
             }
         } catch (error) {
-            console.error('Error en login:', error);
+            const duration = Date.now() - startTime;
+            errorCapture.logError('Login', 'CONNECTION_ERROR', 'Error de conexión al servidor', {
+                error_message: error.message,
+                error_stack: error.stack,
+                duration_ms: duration,
+                identificacion: identificacion
+            });
+            
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
@@ -99,6 +159,10 @@ function Login() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleBackToHome = () => {
+        errorCapture.logAction('Login', 'BACK_TO_HOME', 'Usuario regresa a la página principal');
     };
 
     return (
@@ -129,7 +193,15 @@ function Login() {
                                         type="text"
                                         id="identificacion"
                                         value={identificacion}
-                                        onChange={(e) => setIdentificacion(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setIdentificacion(value);
+                                            if (value.length > 0) {
+                                                errorCapture.logAction('Login', 'FIELD_INPUT', 'Campo identificación modificado', {
+                                                    length: value.length
+                                                });
+                                            }
+                                        }}
                                         placeholder=" "
                                         required
                                     />
@@ -147,7 +219,15 @@ function Login() {
                                         type="password"
                                         id="password"
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setPassword(value);
+                                            if (value.length > 0) {
+                                                errorCapture.logAction('Login', 'FIELD_INPUT', 'Campo contraseña modificado', {
+                                                    length: value.length
+                                                });
+                                            }
+                                        }}
                                         placeholder=" "
                                         required
                                     />
@@ -158,21 +238,37 @@ function Login() {
                                 </div>
                             </div>
 
-                            <button type="submit" className="auth-btn" disabled={loading}>
+                            <button 
+                                type="submit" 
+                                className="auth-btn" 
+                                disabled={loading}
+                                onClick={() => errorCapture.logAction('Login', 'SUBMIT_BUTTON_CLICK', 'Botón de inicio de sesión presionado')}
+                            >
                                 <span id="btnText">{loading ? 'Iniciando...' : 'Iniciar Sesión'}</span>
                                 {loading && <div className="btn-loader"></div>}
                             </button>
                         </form>
 
                         <div className="auth-footer">
-                            <p>¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link></p>
+                            <p>¿No tienes una cuenta? 
+                                <Link 
+                                    to="/register"
+                                    onClick={() => errorCapture.logAction('Login', 'REGISTER_LINK_CLICK', 'Click en enlace de registro')}
+                                >
+                                    Regístrate aquí
+                                </Link>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="back-to-home">
-                <Link to="/" className="back-btn">
+                <Link 
+                    to="/" 
+                    className="back-btn"
+                    onClick={handleBackToHome}
+                >
                     <ion-icon name="arrow-back-outline"></ion-icon>
                     Volver al inicio
                 </Link>

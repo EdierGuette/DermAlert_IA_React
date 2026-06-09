@@ -1,14 +1,22 @@
-# Entrar a la carpeta raíz del proyecto
-cd C:\Users\wposs\Documents\IA_REACT
+# ============================================
+# BACKEND - Django
+# ============================================
 
-# Crear archivo .gitignore
-@"
-# ========== BACKEND ==========
 # Entorno virtual
 venv/
 env/
 ENV/
+env.bak/
+venv.bak/
+
+# Python cache
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Archivos compilados
 *.pyc
 *.pyo
 *.pyd
@@ -16,68 +24,226 @@ __pycache__/
 # Base de datos
 *.sqlite3
 *.db
+*.db-journal
 
 # Variables de entorno
 .env
 .env.local
 .env.production
+.env.development
+.env.test
 
 # Archivos de Django
 staticfiles/
 media/
 *.log
+*.pid
+*.pid.lock
 
-# Archivos de migraciones (opcional, si quieres subir las migraciones)
-# migrations/*.py
-# !migrations/__init__.py
+# Migraciones (descomentar si NO quieres subir migraciones)
+# migrations/
+# */migrations/*.py
+# !*/migrations/__init__.py
 
-# ========== FRONTEND ==========
+# Cobertura de pruebas
+.coverage
+.coverage.*
+.htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# ============================================
+# FRONTEND - React / Vite
+# ============================================
+
 # Dependencias
 node_modules/
 .pnp
 .pnp.js
+.pnp.cjs
+.pnp.loader.mjs
 
-# Build
-build/
+# Build outputs
 dist/
+dist-ssr/
+build/
 *.local
 
-# Archivos de entorno
+# Logs del frontend
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+vite-debug.log*
+
+# Archivos de entorno del frontend
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# ============================================
+# CARPETA DE LOGS DEL PROYECTO (NO SUBIR)
+# ============================================
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
+# Logs generados por el sistema (backup y actuales)
+logs/
+*.log
+*.log.*
+logsfront_back.log
+*_logsfront_back.log
 
-# ========== ARCHIVOS GRANDES ==========
-# Modelo de IA (si es muy grande, >100MB)
+# ============================================
+# ARCHIVOS GRANDES DEL MODELO IA
+# ============================================
+
+# Modelo de IA (pesado, >100MB)
 *.hdf5
 *.ckpt
 *.pb
+*.pkl
+*.joblib
+*.weights
+*.model
+*.onnx
 
-# Dataset
+# ✅ PERMITIR explícitamente este archivo específico (está en la raíz del backend)
+!keras_model.h5
+
+# ============================================
+# ARCHIVOS DE DATOS Y MEDIA
+# ============================================
+
+# Imágenes subidas por usuarios
+media/
+uploads/
+images/
 *.jpg
 *.jpeg
 *.png
+*.gif
+*.bmp
+*.webp
+*.ico
+
+# Videos
 *.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+
+# Archivos comprimidos
 *.zip
 *.tar.gz
+*.rar
+*.7z
+*.tgz
 
-# ========== OTROS ==========
+# Documentos
+*.pdf
+*.docx
+*.xlsx
+
+# ============================================
+# IDEs Y EDITORES
+# ============================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.history/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================
+# SISTEMAS OPERATIVOS
+# ============================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+*.icloud
+
+# Linux
+.directory
+*.bak
+
+# ============================================
+# OTROS
+# ============================================
+
+# Cobertura y reportes
 coverage/
 .nyc_output/
-Thumbs.db
-"@ | Out-File -FilePath .gitignore -Encoding utf8
+*.lcov
+
+# Certificados
+*.pem
+*.crt
+*.key
+
+# Archivos temporales
+*.tmp
+*.temp
+*.cache
+.cache/
+
+# Archivos de entorno de desarrollo
+.devcontainer/
+.envrc
+.direnv/

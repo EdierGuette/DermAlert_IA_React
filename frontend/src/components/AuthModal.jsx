@@ -4,6 +4,9 @@ import Swal from 'sweetalert2';
 // Importar CSS
 import '../css/auth_modal.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function AuthModal({ isOpen, onClose, onVerify, title, message }) {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -12,10 +15,21 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
     const passwordInputRef = useRef(null);
     const isPressedRef = useRef(false);
 
+    // Log cuando se abre el modal
+    useEffect(() => {
+        if (isOpen) {
+            errorCapture.logAction('AuthModal', 'MODAL_OPEN', 'Modal de autenticación abierto', {
+                title: title,
+                hasMessage: !!message
+            });
+        }
+    }, [isOpen, title, message]);
+
     // Manejar cierre con Escape
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape' && isOpen) {
+                errorCapture.logAction('AuthModal', 'MODAL_CLOSE', 'Modal cerrado con tecla ESC');
                 onClose();
             }
         };
@@ -53,6 +67,7 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
         e.preventDefault();
 
         if (!password.trim()) {
+            errorCapture.logWarning('AuthModal', 'VALIDATION_ERROR', 'Intento de verificación sin contraseña');
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -64,7 +79,9 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
             return;
         }
 
+        errorCapture.logAction('AuthModal', 'VERIFY_ATTEMPT', 'Iniciando verificación de contraseña');
         setLoading(true);
+        const startTime = Date.now();
 
         try {
             const token = localStorage.getItem('token');
@@ -77,9 +94,14 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
                 body: JSON.stringify({ password })
             });
 
+            const duration = Date.now() - startTime;
             const data = await response.json();
 
             if (response.ok && data.valid) {
+                errorCapture.logAction('AuthModal', 'VERIFY_SUCCESS', 'Verificación de contraseña exitosa', {
+                    duration_ms: duration
+                });
+                
                 await Swal.fire({
                     icon: 'success',
                     title: 'Verificación exitosa',
@@ -92,6 +114,11 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
                 onClose();
                 setPassword('');
             } else {
+                errorCapture.logWarning('AuthModal', 'VERIFY_FAILED', 'Verificación de contraseña fallida', {
+                    error: data.error,
+                    duration_ms: duration
+                });
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de verificación',
@@ -102,7 +129,11 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
                 });
             }
         } catch (error) {
-            console.error('Error verificando contraseña:', error);
+            errorCapture.logError('AuthModal', 'VERIFY_ERROR', 'Error en verificación de contraseña', {
+                error_message: error.message,
+                error_stack: error.stack
+            });
+            
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -118,7 +149,10 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
 
     return (
         <div className="auth-modal" ref={modalRef}>
-            <div className="auth-modal-overlay" onClick={onClose}></div>
+            <div className="auth-modal-overlay" onClick={() => {
+                errorCapture.logAction('AuthModal', 'MODAL_CLOSE', 'Modal cerrado por clic en overlay');
+                onClose();
+            }}></div>
             <div className="auth-modal-container">
                 <div className="auth-modal-header">
                     <div className="auth-modal-logo">
@@ -129,7 +163,10 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
                     </div>
                     <h3 id="authModalTitle">{title || 'Verificar identidad'}</h3>
                     <p id="authModalMessage">{message || 'Por favor, ingresa tu contraseña para continuar'}</p>
-                    <button className="auth-modal-close" id="closeAuthModal" onClick={onClose}>
+                    <button className="auth-modal-close" id="closeAuthModal" onClick={() => {
+                        errorCapture.logAction('AuthModal', 'MODAL_CLOSE', 'Modal cerrado por botón X');
+                        onClose();
+                    }}>
                         <ion-icon name="close-outline"></ion-icon>
                     </button>
                 </div>

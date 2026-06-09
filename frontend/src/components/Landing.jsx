@@ -13,9 +13,16 @@ import '../css/landing_page/landing-responsive.css';
 import Estadisticas from './Estadisticas';
 import ContactModal from './ContactModal';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Landing() {
+    // Log de montaje/desmontaje
     useEffect(() => {
+        errorCapture.logAction('Landing', 'MOUNT', 'Landing page montada');
+        
         // Inicializar Swiper
+        errorCapture.logAction('Landing', 'SWIPER_INIT', 'Inicializando Swiper');
         const swiper = new Swiper('.medicalSwiper', {
             loop: true,
             autoplay: {
@@ -31,29 +38,37 @@ function Landing() {
                 crossFade: true
             },
         });
+        errorCapture.logAction('Landing', 'SWIPER_READY', 'Swiper inicializado correctamente');
 
         // Smooth scroll para enlaces internos
+        errorCapture.logAction('Landing', 'SMOOTH_SCROLL_SETUP', 'Configurando smooth scroll para enlaces internos');
+        
+        const smoothScrollHandler = (e) => {
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+
+            const targetElement = document.querySelector(href);
+            if (targetElement) {
+                errorCapture.logAction('Landing', 'SMOOTH_SCROLL', `Navegando a: ${href}`);
+                const headerOffset = 80;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const href = this.getAttribute('href');
-                if (href === '#') return;
-
-                const targetElement = document.querySelector(href);
-                if (targetElement) {
-                    const headerOffset = 80;
-                    const elementPosition = targetElement.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+            anchor.addEventListener('click', smoothScrollHandler);
         });
 
         // Animación de entrada para elementos al hacer scroll
+        errorCapture.logAction('Landing', 'INTERSECTION_OBSERVER_SETUP', 'Configurando IntersectionObserver para animaciones');
+        
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -62,13 +77,17 @@ function Landing() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
+                    errorCapture.logAction('Landing', 'ELEMENT_VISIBLE', `Elemento visible: ${entry.target.className || entry.target.tagName}`);
                     entry.target.style.opacity = '1';
                     entry.target.style.transform = 'translateY(0)';
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card, .hero-left, .hero-right').forEach(el => {
+        const animatedElements = document.querySelectorAll('.feature-card, .hero-left, .hero-right');
+        errorCapture.logAction('Landing', 'ANIMATED_ELEMENTS_FOUND', `Elementos a animar encontrados: ${animatedElements.length}`);
+        
+        animatedElements.forEach(el => {
             if (el) {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(30px)';
@@ -78,6 +97,7 @@ function Landing() {
         });
 
         // Generar QR al cargar
+        errorCapture.logAction('Landing', 'QR_GENERATION_START', 'Generando código QR');
         const qrContainer = document.getElementById('qrCode');
         if (qrContainer && window.QRCode) {
             const baseUrl = window.location.origin;
@@ -91,12 +111,33 @@ function Landing() {
                 colorLight: "#ffffff",
                 correctLevel: window.QRCode.CorrectLevel.H
             });
+            errorCapture.logAction('Landing', 'QR_GENERATED', 'Código QR generado correctamente', {
+                url: qrUrl
+            });
+        } else {
+            errorCapture.logWarning('Landing', 'QR_ERROR', 'No se pudo generar el código QR', {
+                hasContainer: !!qrContainer,
+                hasQRCodeLib: !!window.QRCode
+            });
         }
 
         return () => {
+            errorCapture.logAction('Landing', 'UNMOUNT', 'Landing page desmontada, limpiando recursos');
             swiper.destroy(true, true);
             observer.disconnect();
+            errorCapture.logAction('Landing', 'CLEANUP_COMPLETE', 'Recursos liberados correctamente');
         };
+    }, []);
+
+    // Log cuando se carga la landing (vista)
+    useEffect(() => {
+        errorCapture.logAction('Landing', 'VIEW_LOADED', 'Landing page cargada correctamente');
+        
+        // Registrar tiempo de carga de la página
+        const loadTime = window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart;
+        errorCapture.logAction('Landing', 'PAGE_LOAD_TIME', `Tiempo de carga: ${loadTime}ms`, {
+            load_time_ms: loadTime
+        });
     }, []);
 
     const slides = [
@@ -126,13 +167,50 @@ function Landing() {
                     </div>
 
                     <nav className="nav-menu">
-                        <a href="#inicio" className="nav-link">Inicio</a>
-                        <a href="#estadisticas" className="nav-link">Estadísticas</a>
-                        <a href="#caracteristicas" className="nav-link">Características</a>
-                        <a href="#" className="nav-link" id="abrirContacto">Contáctanos</a>
+                        <a 
+                            href="#inicio" 
+                            className="nav-link"
+                            onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Inicio')}
+                        >
+                            Inicio
+                        </a>
+                        <a 
+                            href="#estadisticas" 
+                            className="nav-link"
+                            onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Estadísticas')}
+                        >
+                            Estadísticas
+                        </a>
+                        <a 
+                            href="#caracteristicas" 
+                            className="nav-link"
+                            onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Características')}
+                        >
+                            Características
+                        </a>
+                        <a 
+                            href="#" 
+                            className="nav-link" 
+                            id="abrirContacto"
+                            onClick={() => errorCapture.logAction('Landing', 'CONTACT_CLICK', 'Click en Contáctanos')}
+                        >
+                            Contáctanos
+                        </a>
                         <div className="nav-buttons">
-                            <Link to="/login" className="btn btn-outline">Iniciar Sesión</Link>
-                            <Link to="/register" className="btn btn-primary">Registrarse</Link>
+                            <Link 
+                                to="/login" 
+                                className="btn btn-outline"
+                                onClick={() => errorCapture.logAction('Landing', 'LOGIN_CLICK', 'Click en Iniciar Sesión')}
+                            >
+                                Iniciar Sesión
+                            </Link>
+                            <Link 
+                                to="/register" 
+                                className="btn btn-primary"
+                                onClick={() => errorCapture.logAction('Landing', 'REGISTER_CLICK', 'Click en Registrarse')}
+                            >
+                                Registrarse
+                            </Link>
                         </div>
                     </nav>
                 </div>
@@ -146,7 +224,14 @@ function Landing() {
                             <div className="swiper medicalSwiper">
                                 <div className="swiper-wrapper">
                                     {slides.map((slide, index) => (
-                                        <div key={index} className="swiper-slide">
+                                        <div 
+                                            key={index} 
+                                            className="swiper-slide"
+                                            onClick={() => errorCapture.logAction('Landing', 'SLIDE_CLICK', `Slide ${index + 1} clickeado`, {
+                                                slide: index + 1,
+                                                title: slide.title
+                                            })}
+                                        >
                                             <div className="slide-content">
                                                 <div className="slide-icon">
                                                     <ion-icon name={slide.icon}></ion-icon>
@@ -171,8 +256,21 @@ function Landing() {
                                 de forma rápida, segura y gratuita. Obtén resultados al instante.
                             </p>
                             <div className="hero-buttons">
-                                <Link to="/register" className="btn btn-primary">Comenzar ahora</Link>
-                                <a href="#" className="btn btn-secondary" id="abrirContacto2">Hablar con experto</a>
+                                <Link 
+                                    to="/register" 
+                                    className="btn btn-primary"
+                                    onClick={() => errorCapture.logAction('Landing', 'HERO_BUTTON_CLICK', 'Click en Comenzar ahora')}
+                                >
+                                    Comenzar ahora
+                                </Link>
+                                <a 
+                                    href="#" 
+                                    className="btn btn-secondary" 
+                                    id="abrirContacto2"
+                                    onClick={() => errorCapture.logAction('Landing', 'HERO_BUTTON_CLICK', 'Click en Hablar con experto')}
+                                >
+                                    Hablar con experto
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -216,7 +314,14 @@ function Landing() {
 
                     <div className="features-grid">
                         {features.map((feature, index) => (
-                            <div key={index} className="feature-card">
+                            <div 
+                                key={index} 
+                                className="feature-card"
+                                onClick={() => errorCapture.logAction('Landing', 'FEATURE_CLICK', `Característica clickeada: ${feature.title}`, {
+                                    feature: feature.title,
+                                    description: feature.description
+                                })}
+                            >
                                 <div className="feature-icon">
                                     <ion-icon name={feature.icon}></ion-icon>
                                 </div>

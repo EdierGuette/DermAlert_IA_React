@@ -1,11 +1,47 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 // Importar CSS
 import '../css/landing_page/landing.css';
 import '../css/landing_page/landing-responsive.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function QRLanding() {
+    // Log de montaje/desmontaje
+    useEffect(() => {
+        errorCapture.logAction('QRLanding', 'MOUNT', 'Página QRLanding montada');
+        
+        // Registrar acceso por QR
+        const referrer = document.referrer;
+        const userAgent = navigator.userAgent;
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
+        
+        errorCapture.logAction('QRLanding', 'QR_ACCESS', 'Acceso a través de código QR', {
+            referrer: referrer || 'direct',
+            isMobile: isMobile,
+            userAgent: userAgent,
+            screenSize: `${window.innerWidth}x${window.innerHeight}`,
+            timestamp: new Date().toISOString()
+        });
+        
+        return () => {
+            errorCapture.logAction('QRLanding', 'UNMOUNT', 'Página QRLanding desmontada');
+        };
+    }, []);
+
+    // Log de vista cargada
+    useEffect(() => {
+        errorCapture.logAction('QRLanding', 'VIEW_LOADED', 'Página QR Landing cargada correctamente');
+        
+        // Registrar tiempo de carga
+        const loadTime = window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart;
+        errorCapture.logAction('QRLanding', 'PAGE_LOAD_TIME', `Tiempo de carga: ${loadTime}ms`, {
+            load_time_ms: loadTime
+        });
+    }, []);
+
     return (
         <>
             {/* Ondas de fondo */}
@@ -45,11 +81,19 @@ function QRLanding() {
 
                     {/* Opciones de botones */}
                     <div className="qr-options">
-                        <Link to="/register/?next=/dashboard/" className="qr-btn qr-btn-primary">
+                        <Link 
+                            to="/register/?next=/dashboard/" 
+                            className="qr-btn qr-btn-primary"
+                            onClick={() => errorCapture.logAction('QRLanding', 'CREATE_ACCOUNT_CLICK', 'Click en botón Crear cuenta desde QR')}
+                        >
                             <ion-icon name="person-add-outline"></ion-icon>
                             Crear cuenta
                         </Link>
-                        <Link to="/login/?next=/dashboard/" className="qr-btn qr-btn-secondary">
+                        <Link 
+                            to="/login/?next=/dashboard/" 
+                            className="qr-btn qr-btn-secondary"
+                            onClick={() => errorCapture.logAction('QRLanding', 'LOGIN_CLICK', 'Click en botón Ya tengo cuenta desde QR')}
+                        >
                             <ion-icon name="log-in-outline"></ion-icon>
                             Ya tengo cuenta
                         </Link>
@@ -57,7 +101,11 @@ function QRLanding() {
 
                     {/* Botón volver al inicio */}
                     <div className="back-link">
-                        <Link to="/" className="back-home-btn">
+                        <Link 
+                            to="/" 
+                            className="back-home-btn"
+                            onClick={() => errorCapture.logAction('QRLanding', 'BACK_HOME_CLICK', 'Click en botón Volver al inicio desde QR')}
+                        >
                             <ion-icon name="arrow-back-outline"></ion-icon>
                             Volver al inicio
                         </Link>

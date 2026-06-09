@@ -3,6 +3,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import warnings
 warnings.filterwarnings('ignore')
 
+import time
+import json
+import traceback
+from io import BytesIO
+import base64
+
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -18,9 +24,23 @@ from rest_framework.response import Response
 from PIL import Image, ImageOps
 import numpy as np
 from keras.models import load_model
-import json
+
+# Importar modelos y serializadores
 from .models import Usuario, Diagnostico, Auditoria
 from .serializers import UsuarioSerializer, LoginSerializer, DiagnosticoSerializer
+
+# Importar sistema de logs
+import sys
+from pathlib import Path
+
+# Agregar backend a la ruta para importar backend_logger
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(BACKEND_DIR))
+from backend_logger import log, log_error
+
+# ============================================
+# CONSTANTES Y CONFIGURACIÓN
+# ============================================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 MODEL_PATH = os.path.join(BASE_DIR, 'keras_model.h5')
@@ -35,12 +55,11 @@ def get_model():
     global _model
     if _model is None:
         try:
-            print("Cargando modelo por primera vez...")
+            log('INFO', 'MODELO', 'Cargando modelo de IA...')
             _model = load_model(MODEL_PATH, compile=False)
-            print("Modelo cargado exitosamente.")
+            log('INFO', 'MODELO', 'Modelo cargado exitosamente')
         except Exception as e:
-            print(f"Error CRÍTICO cargando modelo: {e}")
-            pass
+            log_error('MODELO', 'Error cargando modelo', e)
     return _model
 
 def get_class_names():
@@ -50,9 +69,9 @@ def get_class_names():
         try:
             with open(LABELS_PATH, 'r', encoding='utf-8') as f:
                 _class_names = [line.strip().split(' ', 1)[1] for line in f.readlines() if line.strip()]
-            print("Etiquetas cargadas exitosamente.")
+            log('INFO', 'MODELO', f'Etiquetas cargadas: {len(_class_names)} clases')
         except Exception as e:
-            print(f"Error CRÍTICO cargando labels: {e}")
+            log_error('MODELO', 'Error cargando labels', e)
             _class_names = ['Desconocido'] * 9
     return _class_names
 
@@ -70,12 +89,9 @@ CIE10_MAPPING = {
 }
 
 def get_cie10_code(class_name):
-    """Devuelve el código CIE-10 según el nombre de la clase"""
     return CIE10_MAPPING.get(class_name, 'R22.9')
 
-# --- Función auxiliar para mapear clase a categoría ---
 def map_clase_to_categoria(clase_nombre):
-    """Devuelve la categoría según el nombre de la clase específica"""
     benignas = ['Benigno General', 'Nevo Lunar', 'Dermatofibroma', 'Queratosis Seborreica']
     malignas = ['Melanoma', 'Carcinoma Basocelular', 'Carcinoma Escamocelular']
     if clase_nombre == 'Premaligno':
@@ -88,83 +104,80 @@ def map_clase_to_categoria(clase_nombre):
         return 'Maligno'
     return 'Desconocido'
 
-# --- FIN CARGA DIFERIDA ---
+# ============================================
+# VISTAS PÚBLICAS
+# ============================================
 
-# ========== VISTAS PÚBLICAS (SIN CACHÉ) ==========
 @never_cache
 def login_view(request):
-    """Vista de login - SOLO renderiza el template (para desarrollo, React tomará el control)"""
-    print("=== LOGIN_VIEW ===")
+    log('DEBUG', 'VIEWS', f'Acceso a login_view desde {request.META.get("REMOTE_ADDR")}')
     
     if request.user.is_authenticated:
-        print("REDIRECT: User already authenticated -> /")
+        log('INFO', 'VIEWS', f'Usuario ya autenticado, redirigiendo: {request.user.identificacion}')
         return redirect('/')
     
     response = render(request, 'diagnostics/login.html', {
         'PROJECT_NAME': settings.PROJECT_NAME,
         'LOGO_ICON': settings.LOGO_ICON
     })
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
     return response
 
 @never_cache
 def register_view(request):
-    """Vista de registro - SOLO renderiza el template"""
-    print("=== REGISTER_VIEW ===")
+    log('DEBUG', 'VIEWS', 'Acceso a register_view')
     
     if request.user.is_authenticated:
-        print("REDIRECT: User already authenticated -> /")
         return redirect('/')
     
     response = render(request, 'diagnostics/register.html', {
         'PROJECT_NAME': settings.PROJECT_NAME,
         'LOGO_ICON': settings.LOGO_ICON
     })
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
     return response
 
-# ========== VISTA PROTEGIDA (REQUIERE LOGIN) ==========
 @never_cache
 @login_required(login_url='/login/')
 def dashboard_view(request):
-    """Vista del dashboard - SOLO para usuarios autenticados (React tomará el control)"""
-    print("=== DASHBOARD_VIEW ===")
-    print(f"User: {request.user}")
-    
-    if not request.user.is_authenticated:
-        print("REDIRECT: User not authenticated -> /login/")
-        return redirect('/login/')
+    log('INFO', 'VIEWS', f'Dashboard accedido por: {request.user.identificacion}')
     
     response = render(request, 'diagnostics/index.html', {
         'PROJECT_NAME': settings.PROJECT_NAME,
         'LOGO_ICON': settings.LOGO_ICON
     })
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
     return response
 
-# ========== API VIEWS ==========
+# ============================================
+# API VIEWS - AUTH
+# ============================================
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def api_register(request):
-    print("=== API_REGISTER ===")
+    start_time = time.time()
+    identificacion = request.data.get('identificacion', 'unknown')
+    
+    log('INFO', 'AUTH', f'Intento de registro - Identificación: {identificacion}')
+    
     serializer = UsuarioSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
         token, created = Token.objects.get_or_create(user=user)
-
+        
+        duration_ms = int((time.time() - start_time) * 1000)
+        
+        log('INFO', 'AUTH', f'Registro exitoso', {
+            'usuario_id': user.id,
+            'identificacion': user.identificacion,
+            'nombre': f"{user.first_name} {user.last_name}",
+            'duration_ms': duration_ms
+        })
+        
         Auditoria.objects.create(
             usuario=user,
             accion='Registro de usuario',
             detalles={'tipo': 'registro', 'usuario_id': user.id}
         )
-
-        print(f"SUCCESS: User created - {user.identificacion}")
+        
         return Response({
             'token': token.key,
             'user': {
@@ -179,13 +192,24 @@ def api_register(request):
                 'ciudad': user.ciudad
             }
         })
-    print(f"ERROR: Validation errors - {serializer.errors}")
+    
+    duration_ms = int((time.time() - start_time) * 1000)
+    log('WARNING', 'AUTH', f'Registro fallido', {
+        'identificacion': identificacion,
+        'errors': serializer.errors,
+        'duration_ms': duration_ms
+    })
+    
     return Response(serializer.errors, status=400)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def api_login(request):
-    print("=== API_LOGIN ===")
+    start_time = time.time()
+    identificacion = request.data.get('identificacion', 'unknown')
+    
+    log('INFO', 'AUTH', f'Intento de login - Identificación: {identificacion}')
+    
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data['user']
@@ -193,17 +217,24 @@ def api_login(request):
         
         login(request, user)
         
+        duration_ms = int((time.time() - start_time) * 1000)
+        
+        log('INFO', 'AUTH', f'Login exitoso', {
+            'usuario_id': user.id,
+            'identificacion': user.identificacion,
+            'nombre': f"{user.first_name} {user.last_name}",
+            'rol': user.rol,
+            'duration_ms': duration_ms
+        })
+        
         Auditoria.objects.create(
             usuario=user,
             accion='Inicio de sesión',
             detalles={'tipo': 'login'}
         )
         
-        print(f"SUCCESS: Login successful - {user.identificacion}")
-        
         request.session.cycle_key()
         
-        # Obtener el nombre del proyecto desde settings
         from django.conf import settings
         project_name = settings.PROJECT_NAME
         
@@ -218,21 +249,26 @@ def api_login(request):
                 'email': user.email,
                 'rol': user.rol
             },
-            'project_name': project_name  # Enviar también el nombre del proyecto
+            'project_name': project_name
         })
         
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        
         return response
-    print(f"ERROR: Validation errors - {serializer.errors}")
+    
+    duration_ms = int((time.time() - start_time) * 1000)
+    log('WARNING', 'AUTH', f'Login fallido', {
+        'identificacion': identificacion,
+        'errors': serializer.errors,
+        'duration_ms': duration_ms
+    })
+    
     return Response(serializer.errors, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def api_logout(request):
-    print("=== API_LOGOUT ===")
+    user_identificacion = request.user.identificacion
+    
+    log('INFO', 'AUTH', f'Cierre de sesión - Usuario: {user_identificacion}')
     
     try:
         request.user.auth_token.delete()
@@ -242,37 +278,56 @@ def api_logout(request):
     logout(request)
     request.session.flush()
     
-    print("SUCCESS: Logout successful")
+    return Response({'message': 'Sesión cerrada correctamente'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_verify_password(request):
+    start_time = time.time()
+    user = request.user
+    password = request.data.get('password', '')
     
-    response = Response({'message': 'Sesión cerrada correctamente'})
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
+    log('INFO', 'AUTH', f'Verificación de contraseña - Usuario: {user.identificacion}')
     
-    return response
+    if not password:
+        log('WARNING', 'AUTH', 'Verificación fallida - Sin contraseña')
+        return Response({'valid': False, 'error': 'Debe proporcionar una contraseña'}, status=400)
+    
+    if user.check_password(password):
+        duration_ms = int((time.time() - start_time) * 1000)
+        log('INFO', 'AUTH', f'Verificación exitosa', {'duration_ms': duration_ms})
+        return Response({'valid': True})
+    else:
+        duration_ms = int((time.time() - start_time) * 1000)
+        log('WARNING', 'AUTH', f'Verificación fallida - Contraseña incorrecta', {'duration_ms': duration_ms})
+        return Response({'valid': False, 'error': 'Contraseña incorrecta'}, status=401)
+
+# ============================================
+# API VIEWS - PREDICCIÓN
+# ============================================
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def api_predict(request):
-    """
-    Endpoint: POST /api/predict/
-    Form data: file field named 'image'
-    """
-    print("=== API_PREDICT ===")
+    start_time = time.time()
+    user = request.user
+    
+    log('INFO', 'PREDICT', f'Inicio de predicción - Usuario: {user.identificacion}')
     
     model = get_model()
     class_names = get_class_names()
     
     if model is None:
-        return Response({'error': 'El modelo de IA no está disponible en este momento. Contacte al administrador.'}, status=503)
-    if not class_names:
-        return Response({'error': 'Las etiquetas del modelo no están disponibles.'}, status=500)
-
+        log_error('PREDICT', 'Modelo no disponible', None)
+        return Response({'error': 'El modelo de IA no está disponible'}, status=503)
+    
     image_file = request.FILES.get('image')
     if image_file is None:
+        log('WARNING', 'PREDICT', 'No se proporcionó imagen')
         return Response({'error': 'No file provided'}, status=400)
-
+    
     try:
+        # Procesar imagen
         image = Image.open(image_file).convert('RGB')
         size = (224, 224)
         image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
@@ -280,26 +335,26 @@ def api_predict(request):
         normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
         data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
         data[0] = normalized_image_array
-
+        
+        # Predecir
         prediction = model.predict(data)
         probs = prediction[0].tolist()
         index = int(np.argmax(prediction[0]))
         predicted_class = class_names[index] if index < len(class_names) else "Desconocido"
-        
         confidence = float(prediction[0][index]) * 100.0
         confidence = round(confidence, 2)
-
+        
         categoria = map_clase_to_categoria(predicted_class)
         codigo_cie10 = get_cie10_code(predicted_class)
-
-        from io import BytesIO
-        import base64
+        
+        # Guardar imagen en base64
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
-
+        
+        # Guardar diagnóstico
         diagnostico = Diagnostico.objects.create(
-            paciente=request.user,
+            paciente=user,
             clase=predicted_class,
             categoria=categoria,
             confianza=confidence,
@@ -307,14 +362,25 @@ def api_predict(request):
             imagen=img_str,
             codigo_cie10=codigo_cie10
         )
-
+        
+        duration_ms = int((time.time() - start_time) * 1000)
+        
+        log('INFO', 'PREDICT', f'Predicción completada', {
+            'usuario': user.identificacion,
+            'diagnostico_id': diagnostico.id,
+            'clase': predicted_class,
+            'categoria': categoria,
+            'confianza': confidence,
+            'codigo_cie10': codigo_cie10,
+            'duration_ms': duration_ms
+        })
+        
         Auditoria.objects.create(
-            usuario=request.user,
+            usuario=user,
             accion='Análisis de imagen',
-            detalles={'diagnostico_id': diagnostico.id, 'clase': predicted_class, 'categoria': categoria, 'codigo_cie10': codigo_cie10}
+            detalles={'diagnostico_id': diagnostico.id, 'clase': predicted_class, 'categoria': categoria}
         )
-
-        print(f"SUCCESS: Prediction completed - {predicted_class} ({categoria}) - CIE-10: {codigo_cie10}, Confidence: {confidence}%")
+        
         return Response({
             'id': diagnostico.id,
             'probabilities': probs,
@@ -325,23 +391,32 @@ def api_predict(request):
             'class_names': class_names,
             'codigo_cie10': codigo_cie10
         })
-
+        
     except Exception as e:
-        print(f"ERROR: Prediction failed - {e}")
+        duration_ms = int((time.time() - start_time) * 1000)
+        log_error('PREDICT', f'Error en predicción', e, {
+            'usuario': user.identificacion,
+            'duration_ms': duration_ms
+        })
         return Response({'error': str(e)}, status=500)
+
+# ============================================
+# API VIEWS - DIAGNÓSTICOS
+# ============================================
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_diagnosticos(request):
-    """Obtener diagnósticos del usuario"""
-    print("=== API_DIAGNOSTICOS ===")
     user = request.user
+    
+    log('INFO', 'DIAGNOSTICO', f'Listando diagnósticos - Usuario: {user.identificacion}, Rol: {user.rol}')
+    
     if user.rol in ['medico', 'administrador']:
         diagnosticos = Diagnostico.objects.all().order_by('-fecha')
-        print(f"SUCCESS: All diagnostics loaded - {diagnosticos.count()} records")
+        log('INFO', 'DIAGNOSTICO', f'Listados {diagnosticos.count()} diagnósticos (todos)')
     else:
         diagnosticos = Diagnostico.objects.filter(paciente=user).order_by('-fecha')
-        print(f"SUCCESS: User diagnostics loaded - {diagnosticos.count()} records")
+        log('INFO', 'DIAGNOSTICO', f'Listados {diagnosticos.count()} diagnósticos (propios)')
     
     serializer = DiagnosticoSerializer(diagnosticos, many=True)
     return Response(serializer.data)
@@ -349,31 +424,31 @@ def api_diagnosticos(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_diagnostico_by_id(request, id):
-    """Obtener diagnóstico específico por ID"""
-    print(f"=== API_DIAGNOSTICO_BY_ID ===")
-    print(f"Diagnóstico ID: {id}")
+    user = request.user
+    
+    log('INFO', 'DIAGNOSTICO', f'Buscando diagnóstico ID:{id} - Usuario: {user.identificacion}')
+    
     try:
-        user = request.user
         if user.rol in ['medico', 'administrador']:
             diagnostico = Diagnostico.objects.get(id=id)
         else:
             diagnostico = Diagnostico.objects.get(id=id, paciente=user)
         
-        print(f"SUCCESS: Diagnosis found - {diagnostico.id}")
+        log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado ID:{id}')
         serializer = DiagnosticoSerializer(diagnostico)
         return Response(serializer.data)
     except Diagnostico.DoesNotExist:
-        print(f"ERROR: Diagnosis not found - {id}")
+        log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado ID:{id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def api_delete_diagnostico(request, id):
-    """Eliminar diagnóstico"""
-    print(f"=== API_DELETE_DIAGNOSTICO ===")
-    print(f"Diagnóstico ID: {id}")
+    user = request.user
+    
+    log('INFO', 'DIAGNOSTICO', f'Intento de eliminación - Diagnóstico ID:{id}, Usuario: {user.identificacion}')
+    
     try:
-        user = request.user
         if user.rol in ['medico', 'administrador']:
             diagnostico = Diagnostico.objects.get(id=id)
         else:
@@ -381,28 +456,27 @@ def api_delete_diagnostico(request, id):
         
         diagnostico.delete()
         
+        log('INFO', 'DIAGNOSTICO', f'Eliminación exitosa - Diagnóstico ID:{id}')
+        
         Auditoria.objects.create(
             usuario=user,
             accion='Eliminación de diagnóstico',
             detalles={'diagnostico_id': id}
         )
         
-        print(f"SUCCESS: Diagnosis deleted - {id}")
         return Response({'message': 'Diagnóstico eliminado correctamente'})
     except Diagnostico.DoesNotExist:
-        print(f"ERROR: Diagnosis not found - {id}")
+        log('WARNING', 'DIAGNOSTICO', f'Eliminación fallida - Diagnóstico no encontrado ID:{id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_search_diagnosticos(request):
-    """Buscar diagnósticos por ID o cédula"""
-    print("=== API_SEARCH_DIAGNOSTICOS ===")
     search_type = request.GET.get('type', 'id')
     value = request.GET.get('value', '')
     user = request.user
     
-    print(f"Search - Type: {search_type}, Value: {value}")
+    log('INFO', 'DIAGNOSTICO', f'Búsqueda - Tipo: {search_type}, Valor: {value}, Usuario: {user.identificacion}')
     
     if search_type == 'id':
         try:
@@ -411,10 +485,10 @@ def api_search_diagnosticos(request):
             else:
                 diagnostico = Diagnostico.objects.get(id=value, paciente=user)
             serializer = DiagnosticoSerializer(diagnostico)
-            print(f"SUCCESS: Diagnosis found by ID - {value}")
+            log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado por ID: {value}')
             return Response(serializer.data)
         except Diagnostico.DoesNotExist:
-            print(f"ERROR: Diagnosis not found by ID - {value}")
+            log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado por ID: {value}')
             return Response({'error': 'Diagnóstico no encontrado'}, status=404)
     
     elif search_type == 'cedula' and user.rol in ['medico', 'administrador']:
@@ -422,31 +496,56 @@ def api_search_diagnosticos(request):
             paciente__identificacion=value
         ).order_by('-fecha')
         serializer = DiagnosticoSerializer(diagnosticos, many=True)
-        print(f"SUCCESS: Diagnoses found by cedula - {value}, Count: {diagnosticos.count()}")
+        log('INFO', 'DIAGNOSTICO', f'Encontrados {diagnosticos.count()} diagnósticos por cédula: {value}')
         return Response(serializer.data)
     
-    print(f"ERROR: Invalid search - Type: {search_type}")
+    log('WARNING', 'DIAGNOSTICO', f'Búsqueda inválida - Tipo: {search_type}')
     return Response({'error': 'Búsqueda no válida'}, status=400)
 
+# ============================================
+# API VIEWS - LOGS DEL FRONTEND
+# ============================================
 
-# ========== NUEVO ENDPOINT PARA VERIFICAR CONTRASEÑA ==========
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def api_verify_password(request):
-    """
-    Endpoint para verificar la contraseña del usuario autenticado
-    """
-    print("=== API_VERIFY_PASSWORD ===")
-    
-    password = request.data.get('password', '')
-    user = request.user
-    
-    if not password:
-        return Response({'valid': False, 'error': 'Debe proporcionar una contraseña'}, status=400)
-    
-    if user.check_password(password):
-        print(f"SUCCESS: Password verified for user {user.identificacion}")
-        return Response({'valid': True})
-    else:
-        print(f"ERROR: Invalid password for user {user.identificacion}")
-        return Response({'valid': False, 'error': 'Contraseña incorrecta'}, status=401)
+@permission_classes([AllowAny])
+def api_frontend_log(request):
+    """Recibe logs desde el frontend y los guarda en el sistema unificado"""
+    try:
+        data = request.data
+        
+        # Si vienen múltiples logs en un batch
+        if 'logs' in data:
+            logs_recibidos = data.get('logs', [])
+            log('INFO', 'FRONTEND', f'Recibiendo batch de {len(logs_recibidos)} logs')
+            
+            for log_entry in logs_recibidos:
+                level = log_entry.get('level', 'INFO')
+                componente = log_entry.get('component', 'Unknown')
+                accion = log_entry.get('action', '')
+                mensaje = log_entry.get('message', '')
+                datos_log = log_entry.get('data', {})
+                usuario = log_entry.get('user', None)
+                
+                texto = f"[{componente}] {accion}: {mensaje}"
+                
+                from backend_logger import log_frontend
+                log_frontend(level, componente, accion, mensaje, datos_log, usuario)
+            
+            return Response({'status': 'ok', 'count': len(logs_recibidos)})
+        else:
+            # Log individual
+            level = data.get('level', 'INFO')
+            componente = data.get('component', 'Unknown')
+            accion = data.get('action', '')
+            mensaje = data.get('message', '')
+            datos_log = data.get('data', {})
+            usuario = data.get('user', None)
+            
+            from backend_logger import log_frontend
+            log_frontend(level, componente, accion, mensaje, datos_log, usuario)
+            
+            return Response({'status': 'ok'})
+            
+    except Exception as e:
+        print(f"Error al recibir log del frontend: {e}")
+        return Response({'status': 'error', 'error': str(e)}, status=500)

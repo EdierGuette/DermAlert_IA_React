@@ -6,6 +6,9 @@ import Swal from 'sweetalert2';
 import '../css/auth.css';
 import '../css/styles/global.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Register() {
     const [formData, setFormData] = useState({
         first_name: '',
@@ -26,9 +29,20 @@ function Register() {
     const [passwordStrength, setPasswordStrength] = useState({ strength: 0, text: '', class: '' });
     const navigate = useNavigate();
 
+    // Log de montaje
+    useEffect(() => {
+        errorCapture.logAction('Register', 'MOUNT', 'Página de registro montada');
+        return () => {
+            errorCapture.logAction('Register', 'UNMOUNT', 'Página de registro desmontada');
+        };
+    }, []);
+
     // Cargar departamentos desde colombia.json
     useEffect(() => {
+        errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_START', 'Cargando departamentos desde colombia.json');
+        
         const cargarDepartamentos = async () => {
+            const startTime = Date.now();
             try {
                 const response = await fetch('/data/colombia.json');
                 const data = await response.json();
@@ -38,8 +52,18 @@ function Register() {
                 );
                 setDepartamentos(ordenados);
                 setDepartamentosCargados(true);
+                
+                const duration = Date.now() - startTime;
+                errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_SUCCESS', 'Departamentos cargados exitosamente', {
+                    cantidad: ordenados.length,
+                    duration_ms: duration
+                });
             } catch (error) {
-                console.error('Error cargando departamentos:', error);
+                const duration = Date.now() - startTime;
+                errorCapture.logError('Register', 'LOAD_DEPARTMENTS_ERROR', 'Error cargando departamentos', {
+                    error_message: error.message,
+                    duration_ms: duration
+                });
                 Swal.fire({
                     icon: 'warning',
                     title: 'Aviso',
@@ -54,6 +78,8 @@ function Register() {
     // Actualizar ciudades cuando cambia el departamento
     const handleDepartamentoChange = (e) => {
         const deptoNombre = e.target.value;
+        errorCapture.logAction('Register', 'DEPARTMENT_CHANGE', `Departamento seleccionado: ${deptoNombre}`);
+        
         setFormData({ ...formData, departamento: deptoNombre, ciudad: '' });
 
         const deptoObj = departamentos.find(d => d.departamento === deptoNombre);
@@ -62,8 +88,12 @@ function Register() {
                 a.localeCompare(b, 'es')
             );
             setCiudades(ciudadesOrdenadas);
+            errorCapture.logAction('Register', 'CITIES_LOADED', `Ciudades cargadas para ${deptoNombre}`, {
+                cantidad: ciudadesOrdenadas.length
+            });
         } else {
             setCiudades([]);
+            errorCapture.logWarning('Register', 'NO_CITIES', `No hay ciudades disponibles para ${deptoNombre}`);
         }
     };
 
@@ -90,11 +120,24 @@ function Register() {
         }
 
         setPasswordStrength({ strength, text, class: classname });
+        
+        errorCapture.logAction('Register', 'PASSWORD_STRENGTH', `Fortaleza de contraseña: ${text}`, {
+            strength_level: strength,
+            strength_text: text
+        });
     };
 
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
+        
+        // Log para cambios en campos (solo en desarrollo, opcional)
+        if (process.env.NODE_ENV === 'development' && !['password', 'password_confirm'].includes(id)) {
+            errorCapture.logAction('Register', 'FIELD_CHANGE', `Campo ${id} modificado`, {
+                field: id,
+                value_length: value.length
+            });
+        }
 
         if (id === 'password') {
             checkPasswordStrength(value);
@@ -104,7 +147,22 @@ function Register() {
     const validateForm = () => {
         const { first_name, last_name, identificacion, telefono, sexo, departamento, ciudad, password, password_confirm } = formData;
 
+        errorCapture.logAction('Register', 'VALIDATION_START', 'Validando formulario de registro');
+
         if (!first_name || !last_name || !identificacion || !telefono || !sexo || !departamento || !ciudad || !password || !password_confirm) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Campos requeridos faltantes', {
+                missing: {
+                    first_name: !first_name,
+                    last_name: !last_name,
+                    identificacion: !identificacion,
+                    telefono: !telefono,
+                    sexo: !sexo,
+                    departamento: !departamento,
+                    ciudad: !ciudad,
+                    password: !password,
+                    password_confirm: !password_confirm
+                }
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos requeridos',
@@ -115,6 +173,10 @@ function Register() {
         }
 
         if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(first_name) || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(last_name)) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Nombre o apellido con formato inválido', {
+                first_name: first_name,
+                last_name: last_name
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Formato inválido',
@@ -125,6 +187,9 @@ function Register() {
         }
 
         if (!/^[0-9]+$/.test(identificacion)) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Identificación con formato inválido', {
+                identificacion: identificacion
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Formato inválido',
@@ -135,6 +200,9 @@ function Register() {
         }
 
         if (!/^[0-9]+$/.test(telefono)) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Teléfono con formato inválido', {
+                telefono: telefono
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Formato inválido',
@@ -145,6 +213,9 @@ function Register() {
         }
 
         if (password.length < 8) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Contraseña demasiado corta', {
+                password_length: password.length
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Contraseña débil',
@@ -155,6 +226,7 @@ function Register() {
         }
 
         if (password !== password_confirm) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Las contraseñas no coinciden');
             Swal.fire({
                 icon: 'warning',
                 title: 'Contraseñas no coinciden',
@@ -165,6 +237,10 @@ function Register() {
         }
 
         if (passwordStrength.strength < 3) {
+            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Contraseña muy débil', {
+                strength: passwordStrength.strength,
+                required_minimum: 3
+            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Contraseña muy débil',
@@ -174,15 +250,21 @@ function Register() {
             return false;
         }
 
+        errorCapture.logAction('Register', 'VALIDATION_SUCCESS', 'Formulario validado correctamente');
         return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        errorCapture.logAction('Register', 'REGISTER_ATTEMPT', 'Intento de registro', {
+            identificacion: formData.identificacion
+        });
+
         if (!validateForm()) return;
 
         setLoading(true);
+        const startTime = Date.now();
 
         const submitData = {
             username: formData.identificacion,
@@ -198,15 +280,30 @@ function Register() {
         };
 
         try {
+            errorCapture.logAction('Register', 'API_CALL_START', 'Llamando a API de registro', {
+                endpoint: '/api/register/',
+                method: 'POST'
+            });
+
             const response = await fetch('/api/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(submitData)
             });
 
+            const duration = Date.now() - startTime;
             const data = await response.json();
 
             if (response.ok) {
+                errorCapture.logAction('Register', 'REGISTER_SUCCESS', 'Registro exitoso', {
+                    identificacion: formData.identificacion,
+                    user_id: data.user?.id,
+                    rol: data.user?.rol,
+                    duration_ms: duration,
+                    departamento: formData.departamento,
+                    ciudad: formData.ciudad
+                });
+
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -227,20 +324,36 @@ function Register() {
                     showConfirmButton: false
                 });
 
+                errorCapture.logAction('Register', 'REDIRECT', 'Redirigiendo a dashboard');
                 navigate('/dashboard');
             } else {
                 let errorMsg = 'Error en el registro';
+                let errorType = 'unknown';
+                
                 if (response.status >= 500) {
                     errorMsg = 'Error del servidor. Por favor, intente más tarde.';
+                    errorType = 'server_error';
                 } else if (data.identificacion) {
                     errorMsg = 'El número de identificación ya está registrado';
+                    errorType = 'duplicate_identification';
                 } else if (data.username) {
                     errorMsg = 'El nombre de usuario ya está en uso';
+                    errorType = 'duplicate_username';
                 } else if (data.non_field_errors) {
                     errorMsg = data.non_field_errors[0];
+                    errorType = 'validation_error';
                 } else {
                     errorMsg = data.error || 'Error en el registro. Verifica los datos ingresados.';
+                    errorType = 'unknown';
                 }
+
+                errorCapture.logWarning('Register', 'REGISTER_FAILED', 'Registro fallido', {
+                    identificacion: formData.identificacion,
+                    status: response.status,
+                    error: errorMsg,
+                    error_type: errorType,
+                    duration_ms: duration
+                });
 
                 Swal.fire({
                     icon: 'error',
@@ -250,7 +363,14 @@ function Register() {
                 });
             }
         } catch (error) {
-            console.error('Error en registro:', error);
+            const duration = Date.now() - startTime;
+            errorCapture.logError('Register', 'CONNECTION_ERROR', 'Error de conexión en registro', {
+                error_message: error.message,
+                error_stack: error.stack,
+                duration_ms: duration,
+                identificacion: formData.identificacion
+            });
+            
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
@@ -260,6 +380,10 @@ function Register() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleBackToHome = () => {
+        errorCapture.logAction('Register', 'BACK_TO_HOME', 'Usuario regresa a la página principal');
     };
 
     return (
@@ -294,6 +418,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo nombre enfocado')}
                                         />
                                         <label htmlFor="first_name">Nombre</label>
                                     </div>
@@ -311,6 +436,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo apellido enfocado')}
                                         />
                                         <label htmlFor="last_name">Apellido</label>
                                     </div>
@@ -330,6 +456,7 @@ function Register() {
                                         onChange={handleChange}
                                         placeholder=" "
                                         required
+                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo identificación enfocado')}
                                     />
                                     <label htmlFor="identificacion">Número de Identificación</label>
                                 </div>
@@ -349,6 +476,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo teléfono enfocado')}
                                         />
                                         <label htmlFor="telefono">Teléfono</label>
                                     </div>
@@ -364,6 +492,7 @@ function Register() {
                                             value={formData.sexo}
                                             onChange={handleChange}
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo sexo enfocado')}
                                         >
                                             <option value="" disabled selected> </option>
                                             <option value="masculino">Masculino</option>
@@ -387,6 +516,7 @@ function Register() {
                                         onChange={handleDepartamentoChange}
                                         required
                                         disabled={!departamentosCargados}
+                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo departamento enfocado')}
                                     >
                                         <option value="" disabled selected> </option>
                                         {departamentos.map((depto) => (
@@ -411,6 +541,7 @@ function Register() {
                                         onChange={handleChange}
                                         required
                                         disabled={!formData.departamento || ciudades.length === 0}
+                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo ciudad enfocado')}
                                     >
                                         <option value="" disabled selected> </option>
                                         {ciudades.map((ciudad, idx) => (
@@ -437,6 +568,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo contraseña enfocado')}
                                         />
                                         <label htmlFor="password">Contraseña</label>
                                     </div>
@@ -454,6 +586,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
+                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo confirmar contraseña enfocado')}
                                         />
                                         <label htmlFor="password_confirm">Confirmar Contraseña</label>
                                     </div>
@@ -479,21 +612,37 @@ function Register() {
                                 </div>
                             )}
 
-                            <button type="submit" className="auth-btn" disabled={loading}>
+                            <button 
+                                type="submit" 
+                                className="auth-btn" 
+                                disabled={loading}
+                                onClick={() => errorCapture.logAction('Register', 'SUBMIT_BUTTON_CLICK', 'Botón de registro presionado')}
+                            >
                                 <span id="btnText">{loading ? 'Registrando...' : 'Registrarse'}</span>
                                 {loading && <div className="btn-loader"></div>}
                             </button>
                         </form>
 
                         <div className="auth-footer">
-                            <p>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión aquí</Link></p>
+                            <p>¿Ya tienes una cuenta? 
+                                <Link 
+                                    to="/login"
+                                    onClick={() => errorCapture.logAction('Register', 'LOGIN_LINK_CLICK', 'Click en enlace de inicio de sesión')}
+                                >
+                                    Inicia sesión aquí
+                                </Link>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="back-to-home">
-                <Link to="/" className="back-btn">
+                <Link 
+                    to="/" 
+                    className="back-btn"
+                    onClick={handleBackToHome}
+                >
                     <ion-icon name="arrow-back-outline"></ion-icon>
                     Volver al inicio
                 </Link>

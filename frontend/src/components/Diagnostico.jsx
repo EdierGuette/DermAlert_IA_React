@@ -8,6 +8,9 @@ import '../css/diagnostico/manejo_archivos.css';
 import '../css/diagnostico/nivel_riesgo.css';
 import '../css/diagnostico/diagnostic_grafica.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     const [currentFile, setCurrentFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -20,10 +23,12 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     const dropZoneRef = useRef(null);
     let probChart = useRef(null);
 
-    // Inicializar gráfica vacía
+    // Log de montaje/desmontaje
     useEffect(() => {
+        errorCapture.logAction('Diagnostico', 'MOUNT', 'Componente Diagnostico montado');
         initializeEmptyChart();
         return () => {
+            errorCapture.logAction('Diagnostico', 'UNMOUNT', 'Componente Diagnostico desmontado');
             if (probChart.current) {
                 probChart.current.destroy();
             }
@@ -117,6 +122,12 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     };
 
     const showPrediction = (data) => {
+        errorCapture.logAction('Diagnostico', 'SHOW_PREDICTION', 'Mostrando resultados de predicción', {
+            predicted_class: data.predicted_class,
+            categoria: data.categoria,
+            confidence: data.confidence
+        });
+
         const aggregatedProbs = aggregateProbabilities(data.probabilities);
         const labels = ['Benigno', 'Maligno', 'Premaligno', 'Desconocido'];
         const probsValues = [
@@ -265,7 +276,16 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
         const file = files[0];
         if (!file) return;
 
+        errorCapture.logAction('Diagnostico', 'FILE_SELECTED', 'Usuario seleccionó un archivo', {
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type
+        });
+
         if (!file.type.startsWith('image/')) {
+            errorCapture.logWarning('Diagnostico', 'INVALID_FILE_TYPE', 'Tipo de archivo no válido', {
+                file_type: file.type
+            });
             Swal.fire({
                 icon: "error",
                 title: "Tipo de archivo no válido",
@@ -296,6 +316,11 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     };
 
     const handleDeleteImage = () => {
+        errorCapture.logAction('Diagnostico', 'DELETE_IMAGE', 'Usuario eliminó la imagen seleccionada', {
+            had_result: !!result,
+            file_name: currentFile?.name
+        });
+
         setCurrentFile(null);
         setPreviewUrl(null);
         setResult(null);
@@ -339,10 +364,19 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     };
 
     const handlePredict = async () => {
-        if (!currentFile) return;
+        if (!currentFile) {
+            errorCapture.logWarning('Diagnostico', 'PREDICT_NO_FILE', 'Intento de análisis sin imagen');
+            return;
+        }
+
+        errorCapture.logAction('Diagnostico', 'PREDICT_START', 'Iniciando análisis de imagen', {
+            file_name: currentFile.name,
+            file_size: currentFile.size
+        });
 
         setAnalyzing(true);
         const token = localStorage.getItem('token');
+        const startTime = Date.now();
 
         const formData = new FormData();
         formData.append('image', currentFile);
@@ -354,12 +388,24 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                 body: formData
             });
 
+            const duration = Date.now() - startTime;
             const data = await response.json();
 
             if (response.ok) {
+                errorCapture.logAction('Diagnostico', 'PREDICT_SUCCESS', 'Análisis completado exitosamente', {
+                    predicted_class: data.predicted_class,
+                    categoria: data.categoria,
+                    confidence: data.confidence,
+                    duration_ms: duration
+                });
                 showPrediction(data);
                 if (onDiagnosisComplete) onDiagnosisComplete();
             } else {
+                errorCapture.logError('Diagnostico', 'PREDICT_FAILED', 'Error en análisis', {
+                    error: data.error,
+                    status: response.status,
+                    duration_ms: duration
+                });
                 Swal.fire({
                     icon: "error",
                     title: "Error en el análisis",
@@ -369,7 +415,10 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                 });
             }
         } catch (error) {
-            console.error('Error en predicción:', error);
+            errorCapture.logError('Diagnostico', 'PREDICT_ERROR', 'Error de conexión en análisis', {
+                error_message: error.message,
+                error_stack: error.stack
+            });
             Swal.fire({
                 icon: "error",
                 title: "Error de conexión",
@@ -383,10 +432,15 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     };
 
     const handleTakePhoto = () => {
+        errorCapture.logAction('Diagnostico', 'TAKE_PHOTO', 'Usuario abrió la cámara');
         setShowCamera(true);
     };
 
     const handleCameraCapture = (file) => {
+        errorCapture.logAction('Diagnostico', 'CAMERA_CAPTURE', 'Foto capturada desde cámara', {
+            file_name: file.name,
+            file_size: file.size
+        });
         handleFiles([file]);
     };
 
@@ -403,6 +457,7 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
+        errorCapture.logAction('Diagnostico', 'DRAG_DROP', 'Usuario arrastró y soltó un archivo');
         if (e.dataTransfer.files && e.dataTransfer.files.length) {
             handleFiles(e.dataTransfer.files);
         }
@@ -417,7 +472,10 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                         ref={dropZoneRef}
                         id="dropZone"
                         className={`drop-zone ${isDragging ? 'drag' : ''}`}
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => {
+                            errorCapture.logAction('Diagnostico', 'CLICK_UPLOAD', 'Usuario hizo clic para subir imagen');
+                            fileInputRef.current?.click();
+                        }}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
@@ -529,7 +587,10 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
 
             <CameraModal
                 isOpen={showCamera}
-                onClose={() => setShowCamera(false)}
+                onClose={() => {
+                    errorCapture.logAction('Diagnostico', 'CAMERA_CLOSE', 'Modal de cámara cerrado');
+                    setShowCamera(false);
+                }}
                 onCapture={handleCameraCapture}
             />
         </section>

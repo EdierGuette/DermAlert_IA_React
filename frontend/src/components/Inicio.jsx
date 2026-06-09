@@ -4,29 +4,96 @@ import React, { useEffect } from 'react';
 import '../css/inicio/body.css';
 import '../css/inicio/footer.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Inicio() {
+    // Log de montaje/desmontaje
     useEffect(() => {
+        errorCapture.logAction('Inicio', 'MOUNT', 'Componente Inicio montado');
+        
         // Animaciones y efectos al cargar el componente
         const processSteps = document.querySelectorAll('.process-step');
+        
+        errorCapture.logAction('Inicio', 'ELEMENTS_FOUND', 'Elementos encontrados en el DOM', {
+            processStepsCount: processSteps.length
+        });
 
-        processSteps.forEach((step) => {
-            step.addEventListener('mouseenter', () => {
-                step.style.transform = 'translateY(-5px)';
-                step.style.transition = 'transform 0.3s ease';
+        const handleMouseEnter = (step, index) => {
+            step.style.transform = 'translateY(-5px)';
+            step.style.transition = 'transform 0.3s ease';
+            errorCapture.logAction('Inicio', 'MOUSE_ENTER', `Mouse enter en paso ${index + 1}`);
+        };
+
+        const handleMouseLeave = (step, index) => {
+            step.style.transform = 'translateY(0)';
+            errorCapture.logAction('Inicio', 'MOUSE_LEAVE', `Mouse leave en paso ${index + 1}`);
+        };
+
+        processSteps.forEach((step, index) => {
+            step.addEventListener('mouseenter', () => handleMouseEnter(step, index));
+            step.addEventListener('mouseleave', () => handleMouseLeave(step, index));
+        });
+
+        // Log de interacción con cards de prevención
+        const preventionItems = document.querySelectorAll('.prevention-item');
+        preventionItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                errorCapture.logAction('Inicio', 'PREVENTION_ITEM_CLICK', `Item de prevención clickeado`, {
+                    index: index,
+                    text: item.querySelector('span:last-child')?.textContent
+                });
             });
+        });
 
-            step.addEventListener('mouseleave', () => {
-                step.style.transform = 'translateY(0)';
+        // Log de interacción con noticias
+        const newsItems = document.querySelectorAll('.news-item');
+        newsItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                errorCapture.logAction('Inicio', 'NEWS_ITEM_CLICK', `Noticia clickeada`, {
+                    index: index,
+                    title: item.querySelector('h4')?.textContent
+                });
+            });
+        });
+
+        // Log de interacción con enlaces del footer
+        const footerLinks = document.querySelectorAll('.footer-link');
+        footerLinks.forEach((link) => {
+            link.addEventListener('click', (e) => {
+                errorCapture.logAction('Inicio', 'FOOTER_LINK_CLICK', `Enlace del footer clickeado`, {
+                    text: link.textContent,
+                    href: link.getAttribute('href')
+                });
             });
         });
 
         // Limpiar event listeners al desmontar
         return () => {
-            processSteps.forEach((step) => {
-                step.removeEventListener('mouseenter', () => { });
-                step.removeEventListener('mouseleave', () => { });
+            errorCapture.logAction('Inicio', 'UNMOUNT', 'Componente Inicio desmontado, limpiando event listeners');
+            
+            processSteps.forEach((step, index) => {
+                step.removeEventListener('mouseenter', () => handleMouseEnter(step, index));
+                step.removeEventListener('mouseleave', () => handleMouseLeave(step, index));
+            });
+            
+            preventionItems.forEach((item) => {
+                item.removeEventListener('click', () => {});
+            });
+            
+            newsItems.forEach((item) => {
+                item.removeEventListener('click', () => {});
+            });
+            
+            footerLinks.forEach((link) => {
+                link.removeEventListener('click', () => {});
             });
         };
+    }, []);
+
+    // Log cuando se carga el componente (para tracking de vista)
+    useEffect(() => {
+        errorCapture.logAction('Inicio', 'VIEW_LOADED', 'Vista de inicio cargada correctamente');
     }, []);
 
     const preventionItems = [
@@ -98,7 +165,14 @@ function Inicio() {
                 <h2>¿Cómo funciona el sistema?</h2>
                 <div className="process-steps">
                     {processSteps.map((step, index) => (
-                        <div key={index} className="process-step">
+                        <div 
+                            key={index} 
+                            className="process-step"
+                            onClick={() => errorCapture.logAction('Inicio', 'PROCESS_STEP_CLICK', `Paso ${step.number} clickeado`, {
+                                step: step.number,
+                                title: step.title
+                            })}
+                        >
                             <div className="step-number">{step.number}</div>
                             <div className="step-icon">{step.icon}</div>
                             <h3>{step.title}</h3>
@@ -124,7 +198,13 @@ function Inicio() {
                     </div>
                     <div className="prevention-list">
                         {preventionItems.map((item, index) => (
-                            <div key={index} className="prevention-item">
+                            <div 
+                                key={index} 
+                                className="prevention-item"
+                                onClick={() => errorCapture.logAction('Inicio', 'PREVENTION_TIP_CLICK', `Tip de prevención: ${item.text}`, {
+                                    tip: item.text
+                                })}
+                            >
                                 <span className="check-icon">{item.icon}</span>
                                 <span>{item.text}</span>
                             </div>
@@ -141,7 +221,12 @@ function Inicio() {
                         <h4>Tipos de cáncer de piel más comunes</h4>
                         <ul>
                             {cancerTypes.map((cancer, index) => (
-                                <li key={index}>
+                                <li 
+                                    key={index}
+                                    onClick={() => errorCapture.logAction('Inicio', 'CANCER_TYPE_CLICK', `Tipo de cáncer: ${cancer.name}`, {
+                                        cancer_type: cancer.name
+                                    })}
+                                >
                                     <strong>{cancer.name}:</strong> {cancer.description}
                                 </li>
                             ))}
@@ -150,7 +235,13 @@ function Inicio() {
                         <h4>Señales de alarma (Regla ABCDE)</h4>
                         <ul className="abcde-list">
                             {abcdeList.map((item, index) => (
-                                <li key={index}>
+                                <li 
+                                    key={index}
+                                    onClick={() => errorCapture.logAction('Inicio', 'ABCDE_RULE_CLICK', `Regla ABCDE: ${item.letter}`, {
+                                        letter: item.letter,
+                                        description: item.text
+                                    })}
+                                >
                                     <strong>{item.letter}</strong>{item.text.substring(1)}
                                 </li>
                             ))}
@@ -173,7 +264,14 @@ function Inicio() {
                     </div>
                     <div className="news-content">
                         {newsItems.map((item, index) => (
-                            <div key={index} className="news-item">
+                            <div 
+                                key={index} 
+                                className="news-item"
+                                onClick={() => errorCapture.logAction('Inicio', 'NEWS_CLICK', `Noticia: ${item.title}`, {
+                                    title: item.title,
+                                    description: item.description.substring(0, 100)
+                                })}
+                            >
                                 <h4>{item.title}</h4>
                                 <p>{item.description}</p>
                             </div>
@@ -188,8 +286,26 @@ function Inicio() {
                     <div className="footer-section"><strong>Última actualización:</strong> Mayo 2026</div>
                     <div className="footer-section"><strong>Soporte:</strong> edierjose01@gmail.com</div>
                     <div className="footer-section">
-                        <a href="#" className="footer-link">Política de privacidad</a> |
-                        <a href="#" className="footer-link">Términos de uso</a>
+                        <a 
+                            href="#" 
+                            className="footer-link"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                errorCapture.logAction('Inicio', 'PRIVACY_POLICY_CLICK', 'Click en Política de privacidad');
+                            }}
+                        >
+                            Política de privacidad
+                        </a> |
+                        <a 
+                            href="#" 
+                            className="footer-link"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                errorCapture.logAction('Inicio', 'TERMS_CLICK', 'Click en Términos de uso');
+                            }}
+                        >
+                            Términos de uso
+                        </a>
                     </div>
                 </div>
             </div>

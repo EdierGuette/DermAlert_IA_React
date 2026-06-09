@@ -4,6 +4,9 @@ import Chart from 'chart.js/auto';
 // Importar CSS
 import '../css/landing_page/estadisticas.css';
 
+// Importar ErrorCapture para logs
+import errorCapture from '../services/errorCapture';
+
 function Estadisticas() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -22,9 +25,30 @@ function Estadisticas() {
     let usuariosLineChart = null;
     let distribucionPieChart = null;
 
+    // Log de montaje/desmontaje
+    useEffect(() => {
+        errorCapture.logAction('Estadisticas', 'MOUNT', 'Componente Estadisticas montado');
+        return () => {
+            errorCapture.logAction('Estadisticas', 'UNMOUNT', 'Componente Estadisticas desmontado');
+            if (usuariosLineChart) {
+                usuariosLineChart.destroy();
+                errorCapture.logAction('Estadisticas', 'CHART_DESTROY', 'Gráfica de líneas destruida');
+            }
+            if (distribucionPieChart) {
+                distribucionPieChart.destroy();
+                errorCapture.logAction('Estadisticas', 'CHART_DESTROY', 'Gráfica de pastel destruida');
+            }
+        };
+    }, []);
+
     // Función para animar contadores
-    const animateCounter = (element, target) => {
+    const animateCounter = (element, target, metricName) => {
         if (!element) return;
+        
+        errorCapture.logAction('Estadisticas', 'COUNTER_START', `Iniciando animación de contador: ${metricName}`, {
+            target_value: target
+        });
+        
         let current = 0;
         const duration = 1500;
         const stepTime = 20;
@@ -36,6 +60,9 @@ function Estadisticas() {
             if (current >= target) {
                 element.textContent = target.toLocaleString('es-CO');
                 clearInterval(timer);
+                errorCapture.logAction('Estadisticas', 'COUNTER_END', `Contador finalizado: ${metricName}`, {
+                    final_value: target
+                });
             } else {
                 element.textContent = Math.floor(current).toLocaleString('es-CO');
             }
@@ -43,12 +70,17 @@ function Estadisticas() {
     };
 
     // Renderizar top listas con barras animadas
-    const renderTopList = (containerId, data, labelKey, valueKey) => {
+    const renderTopList = (containerId, data, labelKey, valueKey, listName) => {
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        errorCapture.logAction('Estadisticas', 'RENDER_TOP_LIST', `Renderizando lista: ${listName}`, {
+            items_count: data?.length || 0
+        });
+
         if (!data || data.length === 0) {
             container.innerHTML = '<p class="no-data">📭 Aún no hay datos suficientes para mostrar.</p>';
+            errorCapture.logWarning('Estadisticas', 'NO_DATA', `No hay datos para: ${listName}`);
             return;
         }
 
@@ -92,7 +124,14 @@ function Estadisticas() {
 
     // Dibujar gráfica de líneas (usuarios por día)
     const drawLineChart = (ctx, labels, data) => {
-        if (usuariosLineChart) usuariosLineChart.destroy();
+        if (usuariosLineChart) {
+            usuariosLineChart.destroy();
+            errorCapture.logAction('Estadisticas', 'CHART_DESTROY', 'Gráfica de líneas anterior destruida');
+        }
+
+        errorCapture.logAction('Estadisticas', 'DRAW_LINE_CHART', 'Dibujando gráfica de líneas', {
+            data_points: labels.length
+        });
 
         usuariosLineChart = new Chart(ctx, {
             type: 'line',
@@ -151,14 +190,25 @@ function Estadisticas() {
                 }
             }
         });
+        
+        errorCapture.logAction('Estadisticas', 'LINE_CHART_DRAWN', 'Gráfica de líneas dibujada correctamente');
     };
 
     // Dibujar gráfica de pastel (distribución de CATEGORÍAS)
     const drawPieChart = (ctx, data) => {
-        if (distribucionPieChart) distribucionPieChart.destroy();
+        if (distribucionPieChart) {
+            distribucionPieChart.destroy();
+            errorCapture.logAction('Estadisticas', 'CHART_DESTROY', 'Gráfica de pastel anterior destruida');
+        }
 
         const labels = Object.keys(data);
         const values = Object.values(data);
+        
+        errorCapture.logAction('Estadisticas', 'DRAW_PIE_CHART', 'Dibujando gráfica de pastel', {
+            categories: labels,
+            values: values
+        });
+
         const colors = {
             'Maligno': 'rgba(220, 53, 69, 0.8)',
             'Benigno': 'rgba(40, 167, 69, 0.8)',
@@ -210,22 +260,44 @@ function Estadisticas() {
                 }
             }
         });
+        
+        errorCapture.logAction('Estadisticas', 'PIE_CHART_DRAWN', 'Gráfica de pastel dibujada correctamente');
     };
 
     // Cargar datos desde la API
     const cargarEstadisticas = async () => {
+        errorCapture.logAction('Estadisticas', 'LOAD_STATS_START', 'Iniciando carga de estadísticas');
         setLoading(true);
+        const startTime = Date.now();
+        
         try {
             const response = await fetch('/api/estadisticas/');
+            const duration = Date.now() - startTime;
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            
+            errorCapture.logAction('Estadisticas', 'LOAD_STATS_SUCCESS', 'Estadísticas cargadas exitosamente', {
+                duration_ms: duration,
+                usuarios_hoy: data.usuarios_hoy,
+                usuarios_mes: data.usuarios_mes,
+                consultas_hoy: data.consultas_hoy,
+                consultas_totales: data.consultas_totales,
+                top_departamentos: data.top_departamentos?.length || 0,
+                top_ciudades: data.top_ciudades?.length || 0,
+                distribucion_clases: Object.keys(data.distribucion_clases || {})
+            });
 
             setStats(data);
 
             // Animar círculos
-            animateCounter(document.getElementById('usuariosHoyCircle'), data.usuarios_hoy);
-            animateCounter(document.getElementById('usuariosMesCircle'), data.usuarios_mes);
-            animateCounter(document.getElementById('consultasHoyCircle'), data.consultas_hoy);
-            animateCounter(document.getElementById('consultasTotalesCircle'), data.consultas_totales);
+            animateCounter(document.getElementById('usuariosHoyCircle'), data.usuarios_hoy, 'usuarios_hoy');
+            animateCounter(document.getElementById('usuariosMesCircle'), data.usuarios_mes, 'usuarios_mes');
+            animateCounter(document.getElementById('consultasHoyCircle'), data.consultas_hoy, 'consultas_hoy');
+            animateCounter(document.getElementById('consultasTotalesCircle'), data.consultas_totales, 'consultas_totales');
 
             // Gráfica de línea
             const lineCtx = document.getElementById('usuariosLineChart')?.getContext('2d');
@@ -233,6 +305,8 @@ function Estadisticas() {
                 const labels = data.usuarios_por_dia.map(d => d.fecha);
                 const values = data.usuarios_por_dia.map(d => d.count);
                 drawLineChart(lineCtx, labels, values);
+            } else {
+                errorCapture.logWarning('Estadisticas', 'NO_LINE_DATA', 'No hay datos para gráfica de líneas');
             }
 
             // Gráfica de pastel
@@ -240,6 +314,7 @@ function Estadisticas() {
             if (pieCtx && data.distribucion_clases && Object.keys(data.distribucion_clases).length > 0) {
                 drawPieChart(pieCtx, data.distribucion_clases);
             } else if (pieCtx) {
+                errorCapture.logWarning('Estadisticas', 'NO_PIE_DATA', 'No hay datos para gráfica de pastel');
                 const container = document.getElementById('distribucionPieChart')?.parentElement;
                 if (container) {
                     const noDataMsg = document.createElement('p');
@@ -250,27 +325,30 @@ function Estadisticas() {
             }
 
             // Renderizar top listas
-            renderTopList('departamentos-list', data.top_departamentos, 'departamento', 'count');
-            renderTopList('ciudades-list', data.top_ciudades, 'ciudad', 'count');
+            renderTopList('departamentos-list', data.top_departamentos, 'departamento', 'count', 'departamentos');
+            renderTopList('ciudades-list', data.top_ciudades, 'ciudad', 'count', 'ciudades');
 
         } catch (error) {
-            console.error('Error cargando estadísticas:', error);
+            const duration = Date.now() - startTime;
+            errorCapture.logError('Estadisticas', 'LOAD_STATS_ERROR', 'Error cargando estadísticas', {
+                error_message: error.message,
+                duration_ms: duration
+            });
+            
             const errorMsg = '<p class="no-data">⚠️ Error al cargar los datos. Intenta más tarde.</p>';
             document.querySelectorAll('.top-list').forEach(el => {
                 el.innerHTML = errorMsg;
             });
         } finally {
             setLoading(false);
+            errorCapture.logAction('Estadisticas', 'LOAD_STATS_END', 'Carga de estadísticas finalizada', {
+                loading_state: false
+            });
         }
     };
 
     useEffect(() => {
         cargarEstadisticas();
-
-        return () => {
-            if (usuariosLineChart) usuariosLineChart.destroy();
-            if (distribucionPieChart) distribucionPieChart.destroy();
-        };
     }, []);
 
     return (

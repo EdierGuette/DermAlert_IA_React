@@ -18,4 +18,7 @@ urlpatterns = [
     path('api/diagnosticos/<int:id>/delete/', views.api_delete_diagnostico, name='api_delete_diagnostico'),
     path('api/search-diagnosticos/', views.api_search_diagnosticos, name='api_search_diagnosticos'),
     path('api/verify-password/', views.api_verify_password, name='api_verify_password'),
+    
+    # ✅ NUEVA URL para logs del frontend
+    path('api/logs/frontend/', views.api_frontend_log, name='api_frontend_log'),
 ]
