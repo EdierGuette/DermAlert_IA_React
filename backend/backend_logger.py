@@ -82,24 +82,19 @@ def limpiar_logs_antiguos():
 # Anchos de columna (se pueden ajustar fácilmente)
 ANCHO_FECHA = 20          # 2026-06-09 14:30:45
 ANCHO_NIVEL = 8           # INFO, ERROR, etc.
-ANCHO_MODULO = 25         # HTTP, AUTH, FRONTEND (ampliado)
-ANCHO_FUNCION = 30        # nombre de función (ampliado)
-ANCHO_IP = 16             # dirección IP (ampliado)
-ANCHO_USUARIO = 20        # identificacion o Anonymous (ampliado)
-# El resto del espacio para el mensaje (variable)
+ANCHO_MODULO = 25         # HTTP, AUTH, FRONTEND
+ANCHO_FUNCION = 30        # nombre de función
+ANCHO_IP = 16             # dirección IP
+ANCHO_USUARIO = 20        # identificacion o Anonymous
 
-# Función para truncar texto a un ancho específico
-def truncar(texto, ancho):
-    """Trunca un texto a un ancho específico, añadiendo '...' si es necesario"""
-    texto_str = str(texto) if texto else '-'
-    if len(texto_str) <= ancho:
-        return texto_str.ljust(ancho)
-    return texto_str[:ancho-3] + '...'
+# Calcular el ancho de las columnas fijas (sin incluir el mensaje)
+ANCHO_COLUMNAS_FIJAS = ANCHO_FECHA + ANCHO_NIVEL + ANCHO_MODULO + ANCHO_FUNCION + ANCHO_IP + ANCHO_USUARIO + 7  # +7 por los separadores " | "
 
-# Calcular el ancho total de la línea
-ANCHO_TOTAL = ANCHO_FECHA + ANCHO_NIVEL + ANCHO_MODULO + ANCHO_FUNCION + ANCHO_IP + ANCHO_USUARIO + 7 + 4
+# Para el separador, usamos un ancho fijo grande (200 caracteres para el mensaje)
+ANCHO_MENSAJE = 200
+ANCHO_TOTAL = ANCHO_COLUMNAS_FIJAS + ANCHO_MENSAJE
 
-# Línea separadora dinámica
+# Línea separadora dinámica (ahora cubre toda la línea)
 SEPARADOR = "=" * ANCHO_TOTAL
 
 # Cabecera con columnas
@@ -110,10 +105,10 @@ COLUMNAS = (
     f"{'FUNCION':<{ANCHO_FUNCION}} | "
     f"{'IP':<{ANCHO_IP}} | "
     f"{'USUARIO':<{ANCHO_USUARIO}} | "
-    f"MENSAJE"
+    f"{'MENSAJE':<{ANCHO_MENSAJE}}"
 )
 
-# Formato del log con truncamiento automático
+# Formato del log sin truncamiento automático (el mensaje se alinea pero no se trunca)
 FORMATO_LOG = (
     f"%(asctime)-{ANCHO_FECHA}s | "
     f"%(levelname)-{ANCHO_NIVEL}s | "
@@ -145,10 +140,11 @@ class CustomFormatter(logging.Formatter):
         if hasattr(record, 'name') and record.name:
             # Acortar nombres de módulos de Django
             if record.name.startswith('django.'):
-                record.name = record.name.replace('django.utils.autoreload', 'django.autoreload')
+                record.name = record.name.replace('django.utils.autoreload', 'django.ar')
                 record.name = record.name.replace('django.db.backends', 'django.db')
                 record.name = record.name.replace('django.template', 'django.tpl')
                 record.name = record.name.replace('django.core.management', 'django.mgmt')
+                record.name = record.name.replace('django.request', 'django.req')
             
             # Truncar a 25 caracteres
             if len(record.name) > ANCHO_MODULO:
@@ -161,7 +157,10 @@ class CustomFormatter(logging.Formatter):
         # Manejar función personalizada
         if hasattr(record, 'custom_func') and record.custom_func:
             original_func = record.funcName
-            record.funcName = record.custom_func[:ANCHO_FUNCION-3] + '...' if len(record.custom_func) > ANCHO_FUNCION else record.custom_func
+            if len(record.custom_func) > ANCHO_FUNCION:
+                record.funcName = record.custom_func[:ANCHO_FUNCION-3] + '...'
+            else:
+                record.funcName = record.custom_func
             result = super().format(record)
             record.funcName = original_func
             return result
@@ -266,11 +265,12 @@ def log(level, modulo, mensaje, datos=None, funcion=None, ip=None, usuario=None)
     if datos:
         try:
             datos_str = json.dumps(datos, ensure_ascii=False, default=str)
-            if len(datos_str) > 300:
-                datos_str = datos_str[:300] + '...'
+            # Aumentar límite a 2000 caracteres para no perder información
+            if len(datos_str) > 2000:
+                datos_str = datos_str[:2000] + '... [TRUNCADO]'
             texto_completo += f" | Datos: {datos_str}"
         except Exception:
-            texto_completo += f" | Datos: {str(datos)[:300]}"
+            texto_completo += f" | Datos: {str(datos)[:2000]}"
     
     extra = {
         'custom_func': funcion,
@@ -313,7 +313,7 @@ def log_error(modulo, mensaje, error=None, datos=None, funcion=None, ip=None, us
     if error:
         datos_error['error'] = str(error)
         datos_error['tipo'] = type(error).__name__
-        datos_error['traceback'] = traceback.format_exc()[:500]
+        datos_error['traceback'] = traceback.format_exc()[:2000]  # Aumentado a 2000
     
     log('ERROR', modulo, mensaje, datos_error, funcion, ip, usuario)
 
@@ -363,7 +363,7 @@ def log_frontend_error(componente, mensaje, error_data=None, ip=None, usuario=No
     }
     
     if error_data and error_data.get('stack'):
-        datos['stack'] = error_data['stack'][:300]
+        datos['stack'] = error_data['stack'][:2000]  # Aumentado a 2000
     
     log('ERROR', 'FRONTEND', f"[{componente}] {mensaje}", datos, 'log_frontend_error', ip, usuario)
 
@@ -403,7 +403,7 @@ limpiar_logs_antiguos()
 log('INFO', 'SISTEMA', '🚀 SISTEMA DE LOGS INICIADO', None, 'init', '-', 'SYSTEM')
 log('INFO', 'SISTEMA', f'📁 Carpeta de logs: {LOGS_DIR}', None, 'init', '-', 'SYSTEM')
 log('INFO', 'SISTEMA', f'📅 Archivos por día - Retención: {DIAS_A_MANTENER} días', None, 'init', '-', 'SYSTEM')
-log('INFO', 'SISTEMA', '=' * 80, None, 'init', '-', 'SYSTEM')
+log('INFO', 'SISTEMA', SEPARADOR, None, 'init', '-', 'SYSTEM')
 
 print(f"\n✅ Sistema de logs configurado correctamente")
 print(f"   📁 Carpeta: {LOGS_DIR}")
