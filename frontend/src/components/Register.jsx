@@ -25,6 +25,16 @@ function Register() {
         password_confirm: ''
     });
 
+    // Estados para errores en tiempo real
+    const [errors, setErrors] = useState({
+        first_name: '',
+        last_name: '',
+        identificacion: '',
+        telefono: '',
+        password: '',
+        password_confirm: ''
+    });
+
     const [departamentos, setDepartamentos] = useState([]);
     const [ciudades, setCiudades] = useState([]);
     const [departamentosCargados, setDepartamentosCargados] = useState(false);
@@ -34,12 +44,10 @@ function Register() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
-    // Obtener configuración de forma síncrona (ya debería estar cargada)
     const projectName = getProjectNameSync();
     const logoIcon = getLogoIconSync();
     const appVersion = getAppVersionSync();
 
-    // Log de montaje
     useEffect(() => {
         errorCapture.logAction('Register', 'MOUNT', 'Página de registro montada', {
             project_name: projectName,
@@ -50,75 +58,130 @@ function Register() {
         };
     }, [projectName, appVersion]);
 
-    // Handlers para el toggle de contraseña
-    const handleMouseDownPassword = () => setShowPassword(true);
-    const handleMouseUpPassword = () => setShowPassword(false);
-    const handleMouseLeavePassword = () => setShowPassword(false);
-
-    const handleMouseDownConfirm = () => setShowConfirmPassword(true);
-    const handleMouseUpConfirm = () => setShowConfirmPassword(false);
-    const handleMouseLeaveConfirm = () => setShowConfirmPassword(false);
-
-    // Cargar departamentos desde colombia.json
-    useEffect(() => {
-        errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_START', 'Cargando departamentos desde colombia.json');
-
-        const cargarDepartamentos = async () => {
-            const startTime = Date.now();
-            try {
-                const response = await fetch('/data/colombia.json');
-                const data = await response.json();
-                const ordenados = [...data].sort((a, b) =>
-                    a.departamento.localeCompare(b.departamento, 'es')
-                );
-                setDepartamentos(ordenados);
-                setDepartamentosCargados(true);
-
-                const duration = Date.now() - startTime;
-                errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_SUCCESS', 'Departamentos cargados exitosamente', {
-                    cantidad: ordenados.length,
-                    duration_ms: duration
-                });
-            } catch (error) {
-                const duration = Date.now() - startTime;
-                errorCapture.logError('Register', 'LOAD_DEPARTMENTS_ERROR', 'Error cargando departamentos', {
-                    error_message: error.message,
-                    duration_ms: duration
-                });
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Aviso',
-                    text: 'No se pudieron cargar los departamentos. Algunas funcionalidades pueden verse afectadas.',
-                    confirmButtonColor: '#2f7a7a'
-                });
-            }
-        };
-        cargarDepartamentos();
-    }, []);
-
-    // Actualizar ciudades cuando cambia el departamento
-    const handleDepartamentoChange = (e) => {
-        const deptoNombre = e.target.value;
-        errorCapture.logAction('Register', 'DEPARTMENT_CHANGE', `Departamento seleccionado: ${deptoNombre}`);
-
-        setFormData({ ...formData, departamento: deptoNombre, ciudad: '' });
-
-        const deptoObj = departamentos.find(d => d.departamento === deptoNombre);
-        if (deptoObj && deptoObj.ciudades) {
-            const ciudadesOrdenadas = [...deptoObj.ciudades].sort((a, b) =>
-                a.localeCompare(b, 'es')
-            );
-            setCiudades(ciudadesOrdenadas);
-            errorCapture.logAction('Register', 'CITIES_LOADED', `Ciudades cargadas para ${deptoNombre}`, {
-                cantidad: ciudadesOrdenadas.length
-            });
+    // Validaciones en tiempo real
+    const validateNombre = (value) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, first_name: '' }));
+            return true;
+        }
+        if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+            setErrors(prev => ({ ...prev, first_name: '' }));
+            return true;
         } else {
-            setCiudades([]);
-            errorCapture.logWarning('Register', 'NO_CITIES', `No hay ciudades disponibles para ${deptoNombre}`);
+            setErrors(prev => ({ ...prev, first_name: 'Solo letras' }));
+            return false;
         }
     };
 
-    // Validar fortaleza de contraseña
+    const validateApellido = (value) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, last_name: '' }));
+            return true;
+        }
+        if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+            setErrors(prev => ({ ...prev, last_name: '' }));
+            return true;
+        } else {
+            setErrors(prev => ({ ...prev, last_name: 'Solo letras' }));
+            return false;
+        }
+    };
+
+    const validateIdentificacion = (value) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, identificacion: '' }));
+            return true;
+        }
+        if (/^[0-9]+$/.test(value)) {
+            setErrors(prev => ({ ...prev, identificacion: '' }));
+            return true;
+        } else {
+            setErrors(prev => ({ ...prev, identificacion: 'Solo números' }));
+            return false;
+        }
+    };
+
+    const validateTelefono = (value) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, telefono: '' }));
+            return true;
+        }
+        if (/^[0-9]+$/.test(value)) {
+            setErrors(prev => ({ ...prev, telefono: '' }));
+            return true;
+        } else {
+            setErrors(prev => ({ ...prev, telefono: 'Solo números' }));
+            return false;
+        }
+    };
+
+    const validatePassword = (value) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, password: '' }));
+            return true;
+        }
+        if (value.length < 8) {
+            setErrors(prev => ({ ...prev, password: 'Mínimo 8 caracteres' }));
+            return false;
+        } else {
+            setErrors(prev => ({ ...prev, password: '' }));
+            return true;
+        }
+    };
+
+    const validatePasswordConfirm = (value, passwordValue) => {
+        if (value === '') {
+            setErrors(prev => ({ ...prev, password_confirm: '' }));
+            return true;
+        }
+        if (value !== passwordValue) {
+            setErrors(prev => ({ ...prev, password_confirm: 'No coinciden' }));
+            return false;
+        } else {
+            setErrors(prev => ({ ...prev, password_confirm: '' }));
+            return true;
+        }
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        
+        setFormData(prev => ({ ...prev, [id]: value }));
+
+        // Validaciones en tiempo real
+        switch (id) {
+            case 'first_name':
+                validateNombre(value);
+                break;
+            case 'last_name':
+                validateApellido(value);
+                break;
+            case 'identificacion':
+                // Permitir escribir, solo validar y mostrar mensaje
+                validateIdentificacion(value);
+                break;
+            case 'telefono':
+                // Permitir escribir, solo validar y mostrar mensaje
+                validateTelefono(value);
+                break;
+            case 'password':
+                validatePassword(value);
+                checkPasswordStrength(value);
+                // Si hay confirmación escrita, validarla también
+                if (formData.password_confirm) {
+                    validatePasswordConfirm(formData.password_confirm, value);
+                }
+                break;
+            case 'password_confirm':
+                validatePasswordConfirm(value, formData.password);
+                break;
+            default:
+                break;
+        }
+
+        errorCapture.logAction('Register', 'FIELD_CHANGE', `Campo ${id} modificado`);
+    };
+
     const checkPasswordStrength = (password) => {
         let strength = 0;
         if (password.length >= 8) strength++;
@@ -141,151 +204,99 @@ function Register() {
         }
 
         setPasswordStrength({ strength, text, class: classname });
-
-        errorCapture.logAction('Register', 'PASSWORD_STRENGTH', `Fortaleza de contraseña: ${text}`, {
-            strength_level: strength,
-            strength_text: text
-        });
     };
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
+    const handleDepartamentoChange = (e) => {
+        const deptoNombre = e.target.value;
+        setFormData({ ...formData, departamento: deptoNombre, ciudad: '' });
 
-        if (process.env.NODE_ENV === 'development' && !['password', 'password_confirm'].includes(id)) {
-            errorCapture.logAction('Register', 'FIELD_CHANGE', `Campo ${id} modificado`, {
-                field: id,
-                value_length: value.length
-            });
-        }
-
-        if (id === 'password') {
-            checkPasswordStrength(value);
+        const deptoObj = departamentos.find(d => d.departamento === deptoNombre);
+        if (deptoObj && deptoObj.ciudades) {
+            const ciudadesOrdenadas = [...deptoObj.ciudades].sort((a, b) =>
+                a.localeCompare(b, 'es')
+            );
+            setCiudades(ciudadesOrdenadas);
+        } else {
+            setCiudades([]);
         }
     };
 
-    const validateForm = () => {
+    // Cargar departamentos
+    useEffect(() => {
+        const cargarDepartamentos = async () => {
+            try {
+                const response = await fetch('/data/colombia.json');
+                const data = await response.json();
+                const ordenados = [...data].sort((a, b) =>
+                    a.departamento.localeCompare(b.departamento, 'es')
+                );
+                setDepartamentos(ordenados);
+                setDepartamentosCargados(true);
+            } catch (error) {
+                errorCapture.logError('Register', 'LOAD_DEPARTMENTS_ERROR', 'Error cargando departamentos');
+            }
+        };
+        cargarDepartamentos();
+    }, []);
+
+    // Verificar si hay campos vacíos
+    const hasEmptyFields = () => {
         const { first_name, last_name, identificacion, telefono, sexo, departamento, ciudad, password, password_confirm } = formData;
-
-        errorCapture.logAction('Register', 'VALIDATION_START', 'Validando formulario de registro');
-
-        if (!first_name || !last_name || !identificacion || !telefono || !sexo || !departamento || !ciudad || !password || !password_confirm) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Campos requeridos faltantes', {
-                missing: {
-                    first_name: !first_name,
-                    last_name: !last_name,
-                    identificacion: !identificacion,
-                    telefono: !telefono,
-                    sexo: !sexo,
-                    departamento: !departamento,
-                    ciudad: !ciudad,
-                    password: !password,
-                    password_confirm: !password_confirm
-                }
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campos requeridos',
-                text: 'Por favor, complete todos los campos',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(first_name) || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(last_name)) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Nombre o apellido con formato inválido', {
-                first_name: first_name,
-                last_name: last_name
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato inválido',
-                text: 'Los nombres solo pueden contener letras',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (!/^[0-9]+$/.test(identificacion)) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Identificación con formato inválido', {
-                identificacion: identificacion
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato inválido',
-                text: 'La identificación solo debe contener números',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (!/^[0-9]+$/.test(telefono)) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Teléfono con formato inválido', {
-                telefono: telefono
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato inválido',
-                text: 'El teléfono solo debe contener números',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (password.length < 8) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Contraseña demasiado corta', {
-                password_length: password.length
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Contraseña débil',
-                text: 'La contraseña debe tener al menos 8 caracteres',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (password !== password_confirm) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Las contraseñas no coinciden');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Contraseñas no coinciden',
-                text: 'Las contraseñas no coinciden',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        if (passwordStrength.strength < 3) {
-            errorCapture.logWarning('Register', 'VALIDATION_FAILED', 'Contraseña muy débil', {
-                strength: passwordStrength.strength,
-                required_minimum: 3
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Contraseña muy débil',
-                text: 'La contraseña debe contener al menos 8 caracteres, mayúsculas, minúsculas y números',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return false;
-        }
-
-        errorCapture.logAction('Register', 'VALIDATION_SUCCESS', 'Formulario validado correctamente');
-        return true;
+        return !first_name || !last_name || !identificacion || !telefono || !sexo || !departamento || !ciudad || !password || !password_confirm;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        errorCapture.logAction('Register', 'REGISTER_ATTEMPT', 'Intento de registro', {
-            identificacion: formData.identificacion,
-            project_name: projectName
-        });
+        // SweetAlert para campos vacíos
+        if (hasEmptyFields()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos requeridos',
+                text: 'Completa todos los campos',
+                confirmButtonColor: '#2f7a7a',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+            return;
+        }
 
-        if (!validateForm()) return;
+        // Validar que no haya errores en los campos
+        if (errors.first_name || errors.last_name || errors.identificacion || errors.telefono || errors.password || errors.password_confirm) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Errores en el formulario',
+                text: 'Corrige los errores antes de continuar',
+                confirmButtonColor: '#2f7a7a',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+            return;
+        }
+
+        // Validar fortaleza de contraseña
+        if (passwordStrength.strength < 3) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Contraseña débil',
+                text: 'Mínimo 8 caracteres, mayúsculas, minúsculas y números',
+                confirmButtonColor: '#2f7a7a',
+                timer: 2500,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+            return;
+        }
 
         setLoading(true);
-        const startTime = Date.now();
 
         const submitData = {
             username: formData.identificacion,
@@ -301,30 +312,15 @@ function Register() {
         };
 
         try {
-            errorCapture.logAction('Register', 'API_CALL_START', 'Llamando a API de registro', {
-                endpoint: '/api/register/',
-                method: 'POST'
-            });
-
             const response = await fetch('/api/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(submitData)
             });
 
-            const duration = Date.now() - startTime;
             const data = await response.json();
 
             if (response.ok) {
-                errorCapture.logAction('Register', 'REGISTER_SUCCESS', 'Registro exitoso', {
-                    identificacion: formData.identificacion,
-                    user_id: data.user?.id,
-                    rol: data.user?.rol,
-                    duration_ms: duration,
-                    departamento: formData.departamento,
-                    ciudad: formData.ciudad
-                });
-
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -334,69 +330,45 @@ function Register() {
                     icon: 'success',
                     title: '¡Registro exitoso!',
                     html: `<div style="text-align: center;">
-            <p>Tu cuenta ha sido creada correctamente en ${projectName} v${appVersion}.</p>
-            <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-top: 10px;">
-              <strong style="color: #2f7a7a;">Usuario:</strong><br>
-              <span style="font-weight: 600;">${fullName}</span>
-            </div>
-          </div>`,
+                        <p>Tu cuenta ha sido creada correctamente.</p>
+                        <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                            <strong style="color: #2f7a7a;">Usuario:</strong><br>
+                            <span style="font-weight: 600;">${fullName}</span>
+                        </div>
+                    </div>`,
                     confirmButtonColor: '#2f7a7a',
                     timer: 2500,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
                 });
 
-                errorCapture.logAction('Register', 'REDIRECT', 'Redirigiendo a dashboard');
                 navigate('/dashboard');
             } else {
                 let errorMsg = 'Error en el registro';
-                let errorType = 'unknown';
-
-                if (response.status >= 500) {
-                    errorMsg = 'Error del servidor. Por favor, intente más tarde.';
-                    errorType = 'server_error';
-                } else if (data.identificacion) {
+                if (data.identificacion) {
                     errorMsg = 'El número de identificación ya está registrado';
-                    errorType = 'duplicate_identification';
                 } else if (data.username) {
-                    errorMsg = 'El nombre de usuario ya está en uso';
-                    errorType = 'duplicate_username';
-                } else if (data.non_field_errors) {
-                    errorMsg = data.non_field_errors[0];
-                    errorType = 'validation_error';
+                    errorMsg = 'El número de identificación ya está registrado';
                 } else {
                     errorMsg = data.error || 'Error en el registro. Verifica los datos ingresados.';
-                    errorType = 'unknown';
                 }
-
-                errorCapture.logWarning('Register', 'REGISTER_FAILED', 'Registro fallido', {
-                    identificacion: formData.identificacion,
-                    status: response.status,
-                    error: errorMsg,
-                    error_type: errorType,
-                    duration_ms: duration
-                });
 
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: errorMsg,
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonColor: '#d9534f',
+                    confirmButtonText: 'Entendido'
                 });
             }
         } catch (error) {
-            const duration = Date.now() - startTime;
-            errorCapture.logError('Register', 'CONNECTION_ERROR', 'Error de conexión en registro', {
-                error_message: error.message,
-                error_stack: error.stack,
-                duration_ms: duration,
-                identificacion: formData.identificacion
-            });
-
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
-                text: 'No se pudo conectar con el servidor. Verifica que el servidor esté corriendo.',
-                confirmButtonColor: '#d9534f'
+                text: 'No se pudo conectar con el servidor',
+                confirmButtonColor: '#d9534f',
+                confirmButtonText: 'Entendido'
             });
         } finally {
             setLoading(false);
@@ -406,6 +378,14 @@ function Register() {
     const handleBackToHome = () => {
         errorCapture.logAction('Register', 'BACK_TO_HOME', 'Usuario regresa a la página principal');
     };
+
+    const handleMouseDownPassword = () => setShowPassword(true);
+    const handleMouseUpPassword = () => setShowPassword(false);
+    const handleMouseLeavePassword = () => setShowPassword(false);
+
+    const handleMouseDownConfirm = () => setShowConfirmPassword(true);
+    const handleMouseUpConfirm = () => setShowConfirmPassword(false);
+    const handleMouseLeaveConfirm = () => setShowConfirmPassword(false);
 
     return (
         <div className="auth-wrapper">
@@ -439,12 +419,14 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo nombre enfocado')}
+                                            className={errors.first_name ? 'error' : ''}
                                         />
                                         <label htmlFor="first_name">Nombre</label>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-first_name"></div>
+                                        <div className={`error-message ${errors.first_name ? '' : 'hidden'}`}>
+                                            {errors.first_name}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="form-group floating">
@@ -457,12 +439,14 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo apellido enfocado')}
+                                            className={errors.last_name ? 'error' : ''}
                                         />
                                         <label htmlFor="last_name">Apellido</label>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-last_name"></div>
+                                        <div className={`error-message ${errors.last_name ? '' : 'hidden'}`}>
+                                            {errors.last_name}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -477,12 +461,14 @@ function Register() {
                                         onChange={handleChange}
                                         placeholder=" "
                                         required
-                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo identificación enfocado')}
+                                        className={errors.identificacion ? 'error' : ''}
                                     />
                                     <label htmlFor="identificacion">Número de Identificación</label>
                                 </div>
                                 <div className="error-message-container">
-                                    <div className="error-message" id="error-identificacion"></div>
+                                    <div className={`error-message ${errors.identificacion ? '' : 'hidden'}`}>
+                                        {errors.identificacion}
+                                    </div>
                                 </div>
                             </div>
 
@@ -497,12 +483,14 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo teléfono enfocado')}
+                                            className={errors.telefono ? 'error' : ''}
                                         />
                                         <label htmlFor="telefono">Teléfono</label>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-telefono"></div>
+                                        <div className={`error-message ${errors.telefono ? '' : 'hidden'}`}>
+                                            {errors.telefono}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="form-group floating">
@@ -513,7 +501,6 @@ function Register() {
                                             value={formData.sexo}
                                             onChange={handleChange}
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo sexo enfocado')}
                                         >
                                             <option value="" disabled selected> </option>
                                             <option value="masculino">Masculino</option>
@@ -523,7 +510,7 @@ function Register() {
                                         <label htmlFor="sexo">Sexo</label>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-sexo"></div>
+                                        <div className="error-message hidden"></div>
                                     </div>
                                 </div>
                             </div>
@@ -537,7 +524,6 @@ function Register() {
                                         onChange={handleDepartamentoChange}
                                         required
                                         disabled={!departamentosCargados}
-                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo departamento enfocado')}
                                     >
                                         <option value="" disabled selected> </option>
                                         {departamentos.map((depto) => (
@@ -549,7 +535,7 @@ function Register() {
                                     <label htmlFor="departamento">Departamento</label>
                                 </div>
                                 <div className="error-message-container">
-                                    <div className="error-message" id="error-departamento"></div>
+                                    <div className="error-message hidden"></div>
                                 </div>
                             </div>
 
@@ -562,7 +548,6 @@ function Register() {
                                         onChange={handleChange}
                                         required
                                         disabled={!formData.departamento || ciudades.length === 0}
-                                        onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo ciudad enfocado')}
                                     >
                                         <option value="" disabled selected> </option>
                                         {ciudades.map((ciudad, idx) => (
@@ -574,7 +559,7 @@ function Register() {
                                     <label htmlFor="ciudad">Ciudad / Municipio</label>
                                 </div>
                                 <div className="error-message-container">
-                                    <div className="error-message" id="error-ciudad"></div>
+                                    <div className="error-message hidden"></div>
                                 </div>
                             </div>
 
@@ -589,8 +574,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo contraseña enfocado')}
-                                            style={{ fontSize: '13px', paddingRight: '45px' }}
+                                            className={errors.password ? 'error' : ''}
                                         />
                                         <label htmlFor="password">Contraseña</label>
                                         <button
@@ -607,7 +591,9 @@ function Register() {
                                         </button>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-password"></div>
+                                        <div className={`error-message ${errors.password ? '' : 'hidden'}`}>
+                                            {errors.password}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="form-group floating">
@@ -620,8 +606,7 @@ function Register() {
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
-                                            onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo confirmar contraseña enfocado')}
-                                            style={{ fontSize: '13px', paddingRight: '45px' }}
+                                            className={errors.password_confirm ? 'error' : ''}
                                         />
                                         <label htmlFor="password_confirm">Confirmar Contraseña</label>
                                         <button
@@ -638,7 +623,9 @@ function Register() {
                                         </button>
                                     </div>
                                     <div className="error-message-container">
-                                        <div className="error-message" id="error-password_confirm"></div>
+                                        <div className={`error-message ${errors.password_confirm ? '' : 'hidden'}`}>
+                                            {errors.password_confirm}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -663,19 +650,15 @@ function Register() {
                                 type="submit"
                                 className="auth-btn"
                                 disabled={loading}
-                                onClick={() => errorCapture.logAction('Register', 'SUBMIT_BUTTON_CLICK', 'Botón de registro presionado')}
                             >
-                                <span id="btnText">{loading ? 'Registrando...' : 'Registrarse'}</span>
+                                <span>{loading ? 'Registrando...' : 'Registrarse'}</span>
                                 {loading && <div className="btn-loader"></div>}
                             </button>
                         </form>
 
                         <div className="auth-footer">
                             <p>¿Ya tienes una cuenta? &nbsp;
-                                <Link
-                                    to="/login"
-                                    onClick={() => errorCapture.logAction('Register', 'LOGIN_LINK_CLICK', 'Click en enlace de inicio de sesión')}
-                                >
+                                <Link to="/login">
                                     Inicia sesión aquí
                                 </Link>
                             </p>
@@ -685,11 +668,7 @@ function Register() {
             </div>
 
             <div className="back-to-home">
-                <Link
-                    to="/"
-                    className="back-btn"
-                    onClick={handleBackToHome}
-                >
+                <Link to="/" className="back-btn" onClick={handleBackToHome}>
                     <ion-icon name="arrow-back-outline"></ion-icon>
                     Volver al inicio
                 </Link>

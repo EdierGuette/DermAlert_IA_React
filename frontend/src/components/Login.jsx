@@ -18,27 +18,47 @@ function Login() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [identificacionError, setIdentificacionError] = useState('');
     const navigate = useNavigate();
 
-    // Obtener configuración de forma síncrona (ya debería estar cargada)
     const projectName = getProjectNameSync();
     const logoIcon = getLogoIconSync();
-    const appVersion = getAppVersionSync();
 
-    // Log de montaje/desmontaje
     useEffect(() => {
         errorCapture.logAction('Login', 'MOUNT', 'Página de login montada', {
-            project_name: projectName,
-            app_version: appVersion
+            project_name: projectName
         });
         return () => {
             errorCapture.logAction('Login', 'UNMOUNT', 'Página de login desmontada');
         };
-    }, [projectName, appVersion]);
+    }, [projectName]);
 
-    // Función para lanzar confeti por encima del SweetAlert
+    // Validar identificación en tiempo real (solo números)
+    const handleIdentificacionChange = (e) => {
+        const value = e.target.value;
+        
+        if (value === '') {
+            setIdentificacion('');
+            setIdentificacionError('');
+            return;
+        }
+        
+        if (/^[0-9]+$/.test(value)) {
+            setIdentificacion(value);
+            setIdentificacionError('');
+        } else {
+            const onlyNumbers = value.replace(/[^0-9]/g, '');
+            setIdentificacion(onlyNumbers);
+            setIdentificacionError('Solo se permiten números');
+        }
+    };
+
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value);
+    };
+
+    // Función para lanzar confeti
     const lanzarConfeti = () => {
-        // Crear un canvas que esté por encima de todo
         const canvas = document.createElement('canvas');
         canvas.style.position = 'fixed';
         canvas.style.top = '0';
@@ -99,33 +119,21 @@ function Login() {
 
         errorCapture.logAction('Login', 'LOGIN_ATTEMPT', 'Intento de inicio de sesión', {
             identificacion: identificacion,
-            hasPassword: !!password,
-            project_name: projectName
+            hasPassword: !!password
         });
 
+        // SweetAlert SOLO cuando hay campos vacíos
         if (!identificacion || !password) {
-            errorCapture.logWarning('Login', 'VALIDATION_ERROR', 'Campos requeridos faltantes', {
-                hasIdentificacion: !!identificacion,
-                hasPassword: !!password
-            });
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos requeridos',
-                text: 'Por favor ingresa tu identificación y contraseña',
-                confirmButtonColor: '#2f7a7a'
-            });
-            return;
-        }
-
-        if (!/^[0-9]+$/.test(identificacion)) {
-            errorCapture.logWarning('Login', 'VALIDATION_ERROR', 'Formato de identificación inválido', {
-                identificacion: identificacion
-            });
-            Swal.fire({
-                icon: 'warning',
-                title: 'Formato inválido',
-                text: 'La identificación solo debe contener números',
-                confirmButtonColor: '#2f7a7a'
+                text: 'Por favor completa todos los campos',
+                confirmButtonColor: '#2f7a7a',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false
             });
             return;
         }
@@ -134,11 +142,6 @@ function Login() {
         const startTime = Date.now();
 
         try {
-            errorCapture.logAction('Login', 'API_CALL_START', 'Llamando a API de login', {
-                endpoint: '/api/login/',
-                method: 'POST'
-            });
-
             const response = await fetch('/api/login/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -152,10 +155,7 @@ function Login() {
                 errorCapture.logAction('Login', 'LOGIN_SUCCESS', 'Inicio de sesión exitoso', {
                     identificacion: identificacion,
                     user_id: data.user?.id,
-                    user_rol: data.user?.rol,
-                    duration_ms: duration,
-                    project_name: data.project_name,
-                    app_version: data.app_version
+                    duration_ms: duration
                 });
 
                 localStorage.setItem('token', data.token);
@@ -163,10 +163,8 @@ function Login() {
 
                 const fullName = `${data.user.first_name} ${data.user.last_name}`;
 
-                // Lanzar confeti por encima del SweetAlert
                 lanzarConfeti();
 
-                // Mostrar alerta con barra de progreso en reversa
                 Swal.fire({
                     title: '¡Bienvenido!',
                     html: `
@@ -204,55 +202,34 @@ function Login() {
                         }, 2000);
                     }
                 });
-
-                errorCapture.logAction('Login', 'REDIRECT', 'Redirigiendo a dashboard');
             } else {
-                let errorMsg = 'Credenciales incorrectas';
-                let errorType = 'unknown';
-
-                if (response.status === 400 || response.status === 401) {
-                    errorMsg = 'Contraseña incorrecta';
-                    errorType = 'invalid_credentials';
-                } else if (response.status === 403) {
-                    errorMsg = 'No tienes permisos para acceder. Verifica tu cuenta.';
-                    errorType = 'forbidden';
-                } else if (response.status >= 500) {
-                    errorMsg = 'Error del servidor. Por favor, intente más tarde.';
-                    errorType = 'server_error';
-                } else {
-                    errorMsg = data.detail || data.error || 'Credenciales incorrectas';
-                    errorType = 'unknown';
-                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Datos incorrectos',
+                    confirmButtonColor: '#d9534f',
+                    showConfirmButton: false,  // ← OCULTA EL BOTÓN
+                    timer: 2500,
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
 
                 errorCapture.logWarning('Login', 'LOGIN_FAILED', 'Inicio de sesión fallido', {
                     identificacion: identificacion,
                     status: response.status,
-                    error: errorMsg,
-                    error_type: errorType,
                     duration_ms: duration
-                });
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMsg,
-                    confirmButtonColor: '#d9534f',
-                    timer: 2000
                 });
             }
         } catch (error) {
-            const duration = Date.now() - startTime;
-            errorCapture.logError('Login', 'CONNECTION_ERROR', 'Error de conexión al servidor', {
-                error_message: error.message,
-                error_stack: error.stack,
-                duration_ms: duration,
-                identificacion: identificacion
+            errorCapture.logError('Login', 'CONNECTION_ERROR', 'Error de conexión', {
+                error_message: error.message
             });
 
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
-                text: 'No se pudo conectar con el servidor. Verifica que el servidor esté corriendo.',
+                text: 'No se pudo conectar con el servidor',
                 confirmButtonColor: '#d9534f'
             });
         } finally {
@@ -264,18 +241,9 @@ function Login() {
         errorCapture.logAction('Login', 'BACK_TO_HOME', 'Usuario regresa a la página principal');
     };
 
-    // Handlers para el toggle de contraseña (muestra mientras se presiona)
-    const handleMouseDown = () => {
-        setShowPassword(true);
-    };
-
-    const handleMouseUp = () => {
-        setShowPassword(false);
-    };
-
-    const handleMouseLeave = () => {
-        setShowPassword(false);
-    };
+    const handleMouseDown = () => setShowPassword(true);
+    const handleMouseUp = () => setShowPassword(false);
+    const handleMouseLeave = () => setShowPassword(false);
 
     return (
         <div className="auth-wrapper">
@@ -297,7 +265,7 @@ function Login() {
                     </div>
 
                     <div className="auth-body">
-                        <form onSubmit={handleSubmit} className="auth-form">
+                        <form onSubmit={handleSubmit} className="auth-form" noValidate>
                             <div className="form-group floating">
                                 <div className="input-icon-wrapper">
                                     <ion-icon name="card-outline" className="input-icon"></ion-icon>
@@ -305,22 +273,17 @@ function Login() {
                                         type="text"
                                         id="identificacion"
                                         value={identificacion}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            setIdentificacion(value);
-                                            if (value.length > 0) {
-                                                errorCapture.logAction('Login', 'FIELD_INPUT', 'Campo identificación modificado', {
-                                                    length: value.length
-                                                });
-                                            }
-                                        }}
+                                        onChange={handleIdentificacionChange}
                                         placeholder=" "
                                         required
+                                        className={identificacionError ? 'error' : ''}
                                     />
                                     <label htmlFor="identificacion">Número de Identificación</label>
                                 </div>
                                 <div className="error-message-container">
-                                    <div className="error-message" id="error-identificacion"></div>
+                                    <div className={`error-message ${identificacionError ? '' : 'hidden'}`}>
+                                        {identificacionError}
+                                    </div>
                                 </div>
                             </div>
 
@@ -331,15 +294,7 @@ function Login() {
                                         type={showPassword ? "text" : "password"}
                                         id="password"
                                         value={password}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            setPassword(value);
-                                            if (value.length > 0) {
-                                                errorCapture.logAction('Login', 'FIELD_INPUT', 'Campo contraseña modificado', {
-                                                    length: value.length
-                                                });
-                                            }
-                                        }}
+                                        onChange={handlePasswordChange}
                                         placeholder=" "
                                         required
                                     />
@@ -358,7 +313,7 @@ function Login() {
                                     </button>
                                 </div>
                                 <div className="error-message-container">
-                                    <div className="error-message" id="error-password"></div>
+                                    <div className="error-message hidden"></div>
                                 </div>
                             </div>
 
@@ -366,19 +321,15 @@ function Login() {
                                 type="submit"
                                 className="auth-btn"
                                 disabled={loading}
-                                onClick={() => errorCapture.logAction('Login', 'SUBMIT_BUTTON_CLICK', 'Botón de inicio de sesión presionado')}
                             >
-                                <span id="btnText">{loading ? 'Iniciando...' : 'Iniciar Sesión'}</span>
+                                <span>{loading ? 'Iniciando...' : 'Iniciar Sesión'}</span>
                                 {loading && <div className="btn-loader"></div>}
                             </button>
                         </form>
 
                         <div className="auth-footer">
                             <p>¿No tienes una cuenta? &nbsp;
-                                <Link
-                                    to="/register"
-                                    onClick={() => errorCapture.logAction('Login', 'REGISTER_LINK_CLICK', 'Click en enlace de registro')}
-                                >
+                                <Link to="/register">
                                     Regístrate aquí
                                 </Link>
                             </p>
@@ -388,11 +339,7 @@ function Login() {
             </div>
 
             <div className="back-to-home">
-                <Link
-                    to="/"
-                    className="back-btn"
-                    onClick={handleBackToHome}
-                >
+                <Link to="/" className="back-btn" onClick={handleBackToHome}>
                     <ion-icon name="arrow-back-outline"></ion-icon>
                     Volver al inicio
                 </Link>
