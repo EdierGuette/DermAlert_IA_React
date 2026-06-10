@@ -73,7 +73,8 @@ def limpiar_logs_antiguos():
             pass
     
     if eliminados > 0:
-        print(f"🧹 Limpiados {eliminados} archivos de log antiguos (más de {DIAS_A_MANTENER} días)")
+        # Solo log en archivo, no en consola
+        pass
 
 # ============================================
 # DEFINIR ANCHOS DE COLUMNAS (AJUSTABLES)
@@ -237,8 +238,9 @@ def configurar_logger():
     date_handler.setLevel(logging.DEBUG)
     root_logger.addHandler(date_handler)
     
+    # SILENCIAR CONSOLA - NADA se imprime en la terminal
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.CRITICAL)
+    console_handler.setLevel(logging.CRITICAL + 1)  # Nivel más alto que CRITICAL = nada
     console_handler.setFormatter(logging.Formatter(''))
     root_logger.addHandler(console_handler)
     
@@ -390,24 +392,19 @@ def log_frontend(level, componente, accion, mensaje, datos=None, usuario=None, f
 
 
 # ============================================
-# INICIALIZACIÓN AUTOMÁTICA
+# INICIALIZACIÓN AUTOMÁTICA (SILENCIOSA)
 # ============================================
 
 # Configurar logger
 logger, date_handler = configurar_logger()
 
-# Limpiar logs antiguos al iniciar
+# Limpiar logs antiguos al iniciar (silenciosamente)
 limpiar_logs_antiguos()
 
-# Registrar inicio del sistema
+# Registrar inicio del sistema (solo en archivo, no en consola)
 log('INFO', 'SISTEMA', '🚀 SISTEMA DE LOGS INICIADO', None, 'init', '-', 'SYSTEM')
 log('INFO', 'SISTEMA', f'📁 Carpeta de logs: {LOGS_DIR}', None, 'init', '-', 'SYSTEM')
 log('INFO', 'SISTEMA', f'📅 Archivos por día - Retención: {DIAS_A_MANTENER} días', None, 'init', '-', 'SYSTEM')
 log('INFO', 'SISTEMA', SEPARADOR, None, 'init', '-', 'SYSTEM')
 
-print(f"\n✅ Sistema de logs configurado correctamente")
-print(f"   📁 Carpeta: {LOGS_DIR}")
-print(f"   📅 Archivos por día (ej: 9_Junio_2026_logsfront_back.log)")
-print(f"   🗑️  Retención: {DIAS_A_MANTENER} días")
-print(f"   💾 Tamaño máximo por archivo: 50 MB")
-print(f"   📊 Ancho total de columnas: {ANCHO_TOTAL} caracteres\n")
+# NO imprimir nada en consola - todo silencioso

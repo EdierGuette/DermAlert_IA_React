@@ -11,6 +11,24 @@ import sys
 import platform
 import time
 import threading
+from pathlib import Path
+from dotenv import load_dotenv
+
+# ============================================
+# CARGAR VARIABLES DE ENTORNO
+# ============================================
+
+# Buscar el archivo .env en el directorio actual
+env_path = Path(__file__).parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    PROJECT_NAME = os.getenv('PROJECT_NAME', 'DermAlert IA')
+    LOGO_ICON = os.getenv('LOGO_ICON', 'medical-outline')
+    APP_VERSION = os.getenv('APP_VERSION', '1.0.0')
+else:
+    PROJECT_NAME = 'DermAlert IA'
+    LOGO_ICON = 'medical-outline'
+    APP_VERSION = '1.0.0'
 
 # CONFIGURACIÓN
 SHOW_WARNINGS = False
@@ -29,6 +47,8 @@ class Colors:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     BOLD = '\033[1m'
+    CYAN = '\033[96m'
+    MAGENTA = '\033[95m'
     END = '\033[0m'
 
 def clear_screen():
@@ -49,9 +69,16 @@ def safe_print(text, color=None):
 def print_dev_success():
     """Mensaje de desarrollo exitoso"""
     clear_screen()
+    
+    # Calcular longitud del nombre para centrar
+    name_len = len(PROJECT_NAME)
+    version_len = len(APP_VERSION)
+    total_len = name_len + version_len + 3  # +3 por " v"
+    padding = (70 - total_len) // 2
+    
     safe_print("╔══════════════════════════════════════════════════════════════════════════════════════════════╗")
     safe_print("║                                                                                              ║")
-    safe_print("║                         🚀 MODO DESARROLLO EXITOSO - DERMALERT IA 🚀                         ║", Colors.GREEN)
+    safe_print(f"║{ ' ' * padding }🚀 MODO DESARROLLO EXITOSO - {PROJECT_NAME} v{APP_VERSION} 🚀{ ' ' * padding }║", Colors.GREEN)
     safe_print("║                                                                                              ║")
     safe_print("╠══════════════════════════════════════════════════════════════════════════════════════════════╣")
     safe_print("║                                                                                              ║")
@@ -64,7 +91,7 @@ def print_dev_success():
     safe_print("║             🎨 Frontend App:  http://127.0.0.1:5173                                          ║", Colors.GREEN)
     safe_print("║                                                                                              ║")
     safe_print("╚══════════════════════════════════════════════════════════════════════════════════════════════╝")
-    safe_print("\n🛑 Presiona Ctrl+C para detener ambos servidores")
+    safe_print(f"\n🛑 Presiona Ctrl+C para detener ambos servidores ({PROJECT_NAME} v{APP_VERSION})")
 
 def clean_pycache():
     """Limpia todas las carpetas __pycache__ silenciosamente"""
@@ -265,7 +292,7 @@ def run_servers():
             return
         
         # Iniciar backend Django
-        safe_print("🚀 Iniciando BACKEND Django en http://127.0.0.1:8000...", Colors.BLUE)
+        safe_print(f"🚀 Iniciando BACKEND Django ({PROJECT_NAME} v{APP_VERSION}) en http://127.0.0.1:8000...", Colors.BLUE)
         backend_process = subprocess.Popen(
             [python_cmd, "manage.py", "runserver", "8000"],
             stdout=subprocess.PIPE,
@@ -275,7 +302,7 @@ def run_servers():
         )
         
         # Iniciar frontend React
-        safe_print("⚛️  Iniciando FRONTEND React en http://127.0.0.1:5173...", Colors.BLUE)
+        safe_print(f"⚛️  Iniciando FRONTEND React ({PROJECT_NAME} v{APP_VERSION}) en http://127.0.0.1:5173...", Colors.BLUE)
         
         # Navegar a frontend y ejecutar npm run dev
         frontend_process = subprocess.Popen(
@@ -288,7 +315,7 @@ def run_servers():
             shell=platform.system() == 'Windows'
         )
         
-        safe_print("\n✅ AMBOS SERVIDORES EJECUTÁNDOSE", Colors.GREEN)
+        safe_print(f"\n✅ AMBOS SERVIDORES DE {PROJECT_NAME} v{APP_VERSION} EJECUTÁNDOSE", Colors.GREEN)
         safe_print("═" * 60)
         
         def read_output(process, name, color):
@@ -317,7 +344,7 @@ def run_servers():
             time.sleep(1)
             
     except KeyboardInterrupt:
-        safe_print("\n\n🛑 Deteniendo servidores...", Colors.YELLOW)
+        safe_print(f"\n\n🛑 Deteniendo servidores de {PROJECT_NAME}...", Colors.YELLOW)
         if 'backend_process' in locals():
             backend_process.terminate()
         if 'frontend_process' in locals():
@@ -330,20 +357,24 @@ def run_servers():
 def show_menu():
     clear_screen()
     safe_print("═══════════════════════════════════════════════════════════════", Colors.BLUE)
-    safe_print("        🩺 GESTOR DERMALERT IA - DESARROLLO 🩺", Colors.BOLD)
+    safe_print(f"        🩺 GESTOR {PROJECT_NAME} v{APP_VERSION} - DESARROLLO 🩺", Colors.BOLD)
     safe_print("═══════════════════════════════════════════════════════════════", Colors.BLUE)
     safe_print("")
     safe_print("  1. 🚀 Inicializar Servidores (Backend + Frontend)", Colors.GREEN)
     safe_print("  2. 🔧 Regenerar entorno virtual (venv)", Colors.YELLOW)
-    safe_print("  3. 🐍 Crear usuario administrador", Colors.CYAN if hasattr(Colors, 'CYAN') else Colors.BLUE)
-    safe_print("  4. 🗄️  Limpiar migraciones", Colors.CYAN if hasattr(Colors, 'CYAN') else Colors.BLUE)
+    safe_print("  3. 🐍 Crear usuario administrador", Colors.CYAN)
+    safe_print("  4. 🗄️  Limpiar migraciones", Colors.CYAN)
     safe_print("  5. ❌ Salir", Colors.RED)
     safe_print("")
+    safe_print("═══════════════════════════════════════════════════════════════", Colors.BLUE)
+    safe_print(f"📁 Proyecto: {PROJECT_NAME}", Colors.GREEN)
+    safe_print(f"🔖 Versión:  v{APP_VERSION}", Colors.MAGENTA)
+    safe_print(f"🎨 Icono:    {LOGO_ICON}", Colors.GREEN)
     safe_print("═══════════════════════════════════════════════════════════════", Colors.BLUE)
 
 def create_admin():
     """Crear usuario administrador"""
-    safe_print("\n🐍 Creando usuario administrador...", Colors.BLUE)
+    safe_print(f"\n🐍 Creando usuario administrador para {PROJECT_NAME} v{APP_VERSION}...", Colors.BLUE)
     python_cmd = get_python_command()
     if not os.path.exists(python_cmd):
         safe_print("❌ Entorno virtual no encontrado. Ejecuta opción 2 primero.", Colors.RED)
@@ -368,10 +399,19 @@ def clean_migrations():
         if os.path.exists(pycache_path):
             shutil.rmtree(pycache_path)
             safe_print("  ✅ Eliminado: __pycache__/")
-    safe_print("\n✅ Migraciones limpiadas. Ahora ejecuta 'python manage.py makemigrations'", Colors.GREEN)
+    safe_print(f"\n✅ Migraciones de {PROJECT_NAME} limpiadas. Ahora ejecuta 'python manage.py makemigrations'", Colors.GREEN)
     input("\nPresiona Enter para continuar...")
 
 def main():
+    # Mostrar información de configuración al inicio
+    clear_screen()
+    safe_print(f"📋 Configuración cargada desde .env:", Colors.CYAN)
+    safe_print(f"   📛 Nombre del proyecto: {PROJECT_NAME}", Colors.GREEN)
+    safe_print(f"   🔖 Versión:            v{APP_VERSION}", Colors.MAGENTA)
+    safe_print(f"   🎨 Icono del proyecto: {LOGO_ICON}", Colors.GREEN)
+    safe_print("")
+    input("Presiona Enter para continuar...")
+    
     while True:
         show_menu()
         try:
@@ -384,7 +424,7 @@ def main():
                 confirm = input("¿Continuar? (s/N): ").strip().lower()
                 if confirm == 's':
                     if regenerate_venv():
-                        safe_print("\n✅ Entorno virtual regenerado exitosamente", Colors.GREEN)
+                        safe_print(f"\n✅ Entorno virtual de {PROJECT_NAME} regenerado exitosamente", Colors.GREEN)
                         verify_django_installation()
                     else:
                         safe_print("\n❌ Error en la regeneración", Colors.RED)
@@ -396,13 +436,13 @@ def main():
             elif option == '4':
                 clean_migrations()
             elif option == '5':
-                safe_print("\n¡Hasta luego! 🩺", Colors.GREEN)
+                safe_print(f"\n¡Hasta luego! 🩺 - {PROJECT_NAME} v{APP_VERSION}", Colors.GREEN)
                 break
             else:
                 safe_print("\n❌ Opción no válida", Colors.RED)
                 input("\nPresiona Enter para continuar...")
         except KeyboardInterrupt:
-            safe_print("\n\n¡Hasta luego! 🩺", Colors.GREEN)
+            safe_print(f"\n\n¡Hasta luego! 🩺 - {PROJECT_NAME} v{APP_VERSION}", Colors.GREEN)
             break
         except Exception as e:
             safe_print(f"\n❌ Error: {e}", Colors.RED)

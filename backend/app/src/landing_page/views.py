@@ -1,15 +1,12 @@
 # landing_page/views.py
-from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from django.conf import settings
-from django.views.decorators.cache import never_cache
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta, datetime
 import json
-import traceback
 
 # Importar sistema de logs
 import sys
@@ -22,50 +19,6 @@ from backend_logger import log, log_error
 
 # Importar modelos
 from app.src.diagnostics.models import Usuario, Diagnostico
-
-
-# ============================================
-# VISTAS PRINCIPALES
-# ============================================
-
-@never_cache
-def landing_view(request):
-    """Vista principal de la landing page"""
-    
-    log('INFO', 'LANDING', f'Acceso a landing page desde IP: {request.META.get("REMOTE_ADDR")}')
-    
-    if request.user.is_authenticated:
-        log('INFO', 'LANDING', f'Usuario autenticado redirigido a dashboard: {request.user.identificacion}')
-        return redirect('/dashboard/')
-    
-    response = render(request, 'landing_page/landing.html', {
-        'PROJECT_NAME': settings.PROJECT_NAME,
-        'LOGO_ICON': settings.LOGO_ICON,
-    })
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    return response
-
-
-@never_cache
-def qr_redirect_view(request):
-    """Vista para manejar el escaneo del QR"""
-    
-    log('INFO', 'LANDING', f'Acceso por QR desde IP: {request.META.get("REMOTE_ADDR")}')
-    
-    if request.user.is_authenticated:
-        log('INFO', 'LANDING', f'Usuario autenticado por QR, redirigiendo a dashboard con diagnóstico: {request.user.identificacion}')
-        response = redirect('/dashboard/')
-        response.set_cookie('open_diagnostico', 'true', max_age=5)
-        return response
-    
-    log('INFO', 'LANDING', 'Usuario no autenticado, mostrando página de registro/login por QR')
-    
-    response = render(request, 'landing_page/qr_landing.html', {
-        'PROJECT_NAME': settings.PROJECT_NAME,
-        'LOGO_ICON': settings.LOGO_ICON,
-    })
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-    return response
 
 
 # ============================================
@@ -110,6 +63,7 @@ def enviar_contacto(request):
             
             # Usar el nombre del proyecto desde settings
             project_name = settings.PROJECT_NAME
+            app_version = settings.APP_VERSION
             asunto = f'Nuevo mensaje de {nombre} - {project_name}'
             
             # HTML del correo
@@ -194,6 +148,15 @@ def enviar_contacto(request):
                         font-weight: 500;
                         opacity: 0.95;
                         margin-top: 5px;
+                    }}
+                    .version-badge {{
+                        display: inline-block;
+                        background: rgba(255,255,255,0.2);
+                        border-radius: 20px;
+                        padding: 2px 10px;
+                        font-size: 11px;
+                        margin-top: 8px;
+                        color: white;
                     }}
                     .body {{
                         padding: 25px 25px 20px 25px;
@@ -301,6 +264,7 @@ def enviar_contacto(request):
                                 <div class="logo-text">{project_name}</div>
                             </div>
                             <h2>Nuevo mensaje de contacto</h2>
+                            <div class="version-badge">v{app_version}</div>
                         </div>
                         <div class="body">
                             <div class="info-box">
@@ -332,7 +296,7 @@ def enviar_contacto(request):
                             </svg>
                         </div>
                         <div class="footer">
-                            {project_name} - Detección temprana de cáncer de piel
+                            {project_name} v{app_version} - Detección temprana de cáncer de piel
                         </div>
                     </div>
                 </div>

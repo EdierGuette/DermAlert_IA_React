@@ -9,13 +9,12 @@ import traceback
 from io import BytesIO
 import base64
 
-from django.http import JsonResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.utils.decorators import method_decorator
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -104,47 +103,6 @@ def map_clase_to_categoria(clase_nombre):
         return 'Maligno'
     return 'Desconocido'
 
-# ============================================
-# VISTAS PÚBLICAS
-# ============================================
-
-@never_cache
-def login_view(request):
-    log('DEBUG', 'VIEWS', f'Acceso a login_view desde {request.META.get("REMOTE_ADDR")}')
-    
-    if request.user.is_authenticated:
-        log('INFO', 'VIEWS', f'Usuario ya autenticado, redirigiendo: {request.user.identificacion}')
-        return redirect('/')
-    
-    response = render(request, 'diagnostics/login.html', {
-        'PROJECT_NAME': settings.PROJECT_NAME,
-        'LOGO_ICON': settings.LOGO_ICON
-    })
-    return response
-
-@never_cache
-def register_view(request):
-    log('DEBUG', 'VIEWS', 'Acceso a register_view')
-    
-    if request.user.is_authenticated:
-        return redirect('/')
-    
-    response = render(request, 'diagnostics/register.html', {
-        'PROJECT_NAME': settings.PROJECT_NAME,
-        'LOGO_ICON': settings.LOGO_ICON
-    })
-    return response
-
-@never_cache
-@login_required(login_url='/login/')
-def dashboard_view(request):
-    log('INFO', 'VIEWS', f'Dashboard accedido por: {request.user.identificacion}')
-    
-    response = render(request, 'diagnostics/index.html', {
-        'PROJECT_NAME': settings.PROJECT_NAME,
-        'LOGO_ICON': settings.LOGO_ICON
-    })
-    return response
 
 # ============================================
 # API VIEWS - AUTH
@@ -202,6 +160,7 @@ def api_register(request):
     
     return Response(serializer.errors, status=400)
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def api_login(request):
@@ -235,8 +194,8 @@ def api_login(request):
         
         request.session.cycle_key()
         
-        from django.conf import settings
         project_name = settings.PROJECT_NAME
+        app_version = settings.APP_VERSION
         
         response = Response({
             'token': token.key,
@@ -249,7 +208,8 @@ def api_login(request):
                 'email': user.email,
                 'rol': user.rol
             },
-            'project_name': project_name
+            'project_name': project_name,
+            'app_version': app_version
         })
         
         return response
@@ -262,6 +222,7 @@ def api_login(request):
     })
     
     return Response(serializer.errors, status=400)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -279,6 +240,7 @@ def api_logout(request):
     request.session.flush()
     
     return Response({'message': 'Sesión cerrada correctamente'})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -301,6 +263,7 @@ def api_verify_password(request):
         duration_ms = int((time.time() - start_time) * 1000)
         log('WARNING', 'AUTH', f'Verificación fallida - Contraseña incorrecta', {'duration_ms': duration_ms})
         return Response({'valid': False, 'error': 'Contraseña incorrecta'}, status=401)
+
 
 # ============================================
 # API VIEWS - PREDICCIÓN
@@ -400,6 +363,7 @@ def api_predict(request):
         })
         return Response({'error': str(e)}, status=500)
 
+
 # ============================================
 # API VIEWS - DIAGNÓSTICOS
 # ============================================
@@ -421,6 +385,7 @@ def api_diagnosticos(request):
     serializer = DiagnosticoSerializer(diagnosticos, many=True)
     return Response(serializer.data)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_diagnostico_by_id(request, id):
@@ -440,6 +405,7 @@ def api_diagnostico_by_id(request, id):
     except Diagnostico.DoesNotExist:
         log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado ID:{id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -468,6 +434,7 @@ def api_delete_diagnostico(request, id):
     except Diagnostico.DoesNotExist:
         log('WARNING', 'DIAGNOSTICO', f'Eliminación fallida - Diagnóstico no encontrado ID:{id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -501,6 +468,7 @@ def api_search_diagnosticos(request):
     
     log('WARNING', 'DIAGNOSTICO', f'Búsqueda inválida - Tipo: {search_type}')
     return Response({'error': 'Búsqueda no válida'}, status=400)
+
 
 # ============================================
 # API VIEWS - LOGS DEL FRONTEND
@@ -549,3 +517,24 @@ def api_frontend_log(request):
     except Exception as e:
         print(f"Error al recibir log del frontend: {e}")
         return Response({'status': 'error', 'error': str(e)}, status=500)
+
+
+# ============================================
+# API VIEWS - CONFIGURACIÓN GLOBAL
+# ============================================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_config(request):
+    """
+    API pública que devuelve la configuración global de la aplicación
+    para que el frontend React pueda leerla dinámicamente.
+    """
+    log('INFO', 'CONFIG', 'Solicitud de configuración global')
+    
+    return Response({
+        'PROJECT_NAME': settings.PROJECT_NAME,
+        'LOGO_ICON': settings.LOGO_ICON,
+        'APP_VERSION': settings.APP_VERSION,
+        'status': 'ok'
+    })

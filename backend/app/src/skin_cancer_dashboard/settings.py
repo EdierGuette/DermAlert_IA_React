@@ -18,6 +18,9 @@ PROJECT_NAME = os.getenv('PROJECT_NAME', 'DermAlert IA')
 # ===== LOGO ICON =====
 LOGO_ICON = os.getenv('LOGO_ICON', 'shield-half-outline')
 
+# ===== VERSIÓN DE LA APLICACIÓN =====
+APP_VERSION = os.getenv('APP_VERSION', '1.0.0')
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -35,7 +38,7 @@ INSTALLED_APPS = [
 
 # ===== MIDDLEWARE (CON LOGGING AL PRINCIPIO) =====
 MIDDLEWARE = [
-    'app.src.diagnostics.middleware.HTTPLoggingMiddleware',  # ✅ NUEVO: Logs de HTTP (primero)
+    'app.src.diagnostics.middleware.HTTPLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -44,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'app.src.diagnostics.middleware.AuthRequiredMiddleware',  # Tu middleware existente
+    'app.src.diagnostics.middleware.AuthRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'app.src.skin_cancer_dashboard.urls'
@@ -196,19 +199,18 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BACKEND_DIR))
 
-# Inicializar el sistema de logs
+# Inicializar el sistema de logs (silenciosamente)
 from backend_logger import configurar_logger, log
 
-# Configurar el logger
+# Configurar el logger (ya no imprime nada porque backend_logger está silenciado)
 LOGGER = configurar_logger()
 
-# Registrar inicio del servidor
+# Registrar inicio del servidor (solo en archivo de log)
 log('INFO', 'SISTEMA', '=' * 80)
-log('INFO', 'SISTEMA', '🚀 SERVIDOR DJANGO INICIADO')
+log('INFO', 'SISTEMA', f'🚀 SERVIDOR DJANGO INICIADO - {PROJECT_NAME} v{APP_VERSION}')
 log('INFO', 'SISTEMA', f'📁 Archivo de logs: {BACKEND_DIR.parent / "logs" / "logsfront_back.log"}')
 log('INFO', 'SISTEMA', f'🔧 Modo DEBUG: {DEBUG}')
 log('INFO', 'SISTEMA', f'🌐 Hosts permitidos: {ALLOWED_HOSTS}')
 log('INFO', 'SISTEMA', '=' * 80)
 
-print(f"\n✅ Configuración de Django completada")
-print(f"📝 Sistema de logs inicializado correctamente\n")
+# NO imprimir nada en consola - todo silencioso

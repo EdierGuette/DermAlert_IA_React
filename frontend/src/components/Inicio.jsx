@@ -7,10 +7,20 @@ import '../css/inicio/footer.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getAppVersionSync } from '../services/config';
+
 function Inicio() {
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const appVersion = getAppVersionSync();
+
     // Log de montaje/desmontaje
     useEffect(() => {
-        errorCapture.logAction('Inicio', 'MOUNT', 'Componente Inicio montado');
+        errorCapture.logAction('Inicio', 'MOUNT', 'Componente Inicio montado', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         
         // Animaciones y efectos al cargar el componente
         const processSteps = document.querySelectorAll('.process-step');
@@ -89,12 +99,15 @@ function Inicio() {
                 link.removeEventListener('click', () => {});
             });
         };
-    }, []);
+    }, [projectName, appVersion]);
 
     // Log cuando se carga el componente (para tracking de vista)
     useEffect(() => {
-        errorCapture.logAction('Inicio', 'VIEW_LOADED', 'Vista de inicio cargada correctamente');
-    }, []);
+        errorCapture.logAction('Inicio', 'VIEW_LOADED', 'Vista de inicio cargada correctamente', {
+            project_name: projectName,
+            app_version: appVersion
+        });
+    }, [projectName, appVersion]);
 
     const preventionItems = [
         { text: 'Usa protector solar SPF 30+', icon: '✔' },
@@ -150,7 +163,7 @@ function Inicio() {
 
     return (
         <section className="view" id="home">
-            <h1>Bienvenido a DermAlert IA</h1>
+            <h1>Bienvenido a {projectName}</h1>
             <p className="lead">Plataforma avanzada para clasificación de lesiones cutáneas basada en inteligencia artificial.</p>
 
             <div className="warning-banner">
@@ -282,7 +295,7 @@ function Inicio() {
 
             <div className="professional-footer">
                 <div className="footer-content">
-                    <div className="footer-section"><strong>Versión del modelo:</strong> DermAlert IA v2.1</div>
+                    <div className="footer-section"><strong>Versión del modelo:</strong> {projectName} v{appVersion}</div>
                     <div className="footer-section"><strong>Última actualización:</strong> Mayo 2026</div>
                     <div className="footer-section"><strong>Soporte:</strong> edierjose01@gmail.com</div>
                     <div className="footer-section">

@@ -7,6 +7,9 @@ import '../css/auth_modal.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync } from '../services/config';
+
 function AuthModal({ isOpen, onClose, onVerify, title, message }) {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -15,15 +18,20 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
     const passwordInputRef = useRef(null);
     const isPressedRef = useRef(false);
 
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+
     // Log cuando se abre el modal
     useEffect(() => {
         if (isOpen) {
             errorCapture.logAction('AuthModal', 'MODAL_OPEN', 'Modal de autenticación abierto', {
                 title: title,
-                hasMessage: !!message
+                hasMessage: !!message,
+                project_name: projectName
             });
         }
-    }, [isOpen, title, message]);
+    }, [isOpen, title, message, projectName]);
 
     // Manejar cierre con Escape
     useEffect(() => {
@@ -157,9 +165,9 @@ function AuthModal({ isOpen, onClose, onVerify, title, message }) {
                 <div className="auth-modal-header">
                     <div className="auth-modal-logo">
                         <div className="auth-modal-logo-icon">
-                            <ion-icon name="medical-outline"></ion-icon>
+                            <ion-icon name={logoIcon}></ion-icon>
                         </div>
-                        <div className="auth-modal-logo-text">DermAlert IA</div>
+                        <div className="auth-modal-logo-text">{projectName}</div>
                     </div>
                     <h3 id="authModalTitle">{title || 'Verificar identidad'}</h3>
                     <p id="authModalMessage">{message || 'Por favor, ingresa tu contraseña para continuar'}</p>

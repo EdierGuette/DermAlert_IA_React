@@ -7,6 +7,9 @@ import '../css/landing_page/contacto.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync, getAppVersionSync } from '../services/config';
+
 function ContactModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -19,20 +22,29 @@ function ContactModal() {
     const itiRef = useRef(null);
     const phoneInputRef = useRef(null);
 
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+    const appVersion = getAppVersionSync();
+
     // Log cuando se abre/cierra el modal
     useEffect(() => {
         if (isOpen) {
-            errorCapture.logAction('ContactModal', 'MODAL_OPEN', 'Modal de contacto abierto');
+            errorCapture.logAction('ContactModal', 'MODAL_OPEN', 'Modal de contacto abierto', {
+                project_name: projectName
+            });
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
         }
-    }, [isOpen]);
+    }, [isOpen, projectName]);
 
     // Inicializar intl-tel-input
     useEffect(() => {
         if (isOpen && phoneInputRef.current && window.intlTelInput && !itiRef.current) {
-            errorCapture.logAction('ContactModal', 'INTL_TEL_INIT', 'Inicializando selector de país para teléfono');
+            errorCapture.logAction('ContactModal', 'INTL_TEL_INIT', 'Inicializando selector de país para teléfono', {
+                project_name: projectName
+            });
             
             itiRef.current = window.intlTelInput(phoneInputRef.current, {
                 initialCountry: "co",
@@ -63,10 +75,12 @@ function ContactModal() {
                 itiRef.current = null;
             }
         };
-    }, [isOpen]);
+    }, [isOpen, projectName]);
 
     const abrirModal = () => {
-        errorCapture.logAction('ContactModal', 'MODAL_OPEN_TRIGGER', 'Modal de contacto abierto desde botón');
+        errorCapture.logAction('ContactModal', 'MODAL_OPEN_TRIGGER', 'Modal de contacto abierto desde botón', {
+            project_name: projectName
+        });
         setIsOpen(true);
     };
 
@@ -77,7 +91,8 @@ function ContactModal() {
                 email: !!formData.email,
                 telefono: !!formData.telefono,
                 mensaje: !!formData.mensaje
-            }
+            },
+            project_name: projectName
         });
         setIsOpen(false);
         setFormData({ nombre: '', email: '', telefono: '', mensaje: '' });
@@ -118,7 +133,9 @@ function ContactModal() {
     const enviarFormulario = async (e) => {
         e.preventDefault();
 
-        errorCapture.logAction('ContactModal', 'FORM_SUBMIT_START', 'Iniciando envío de formulario de contacto');
+        errorCapture.logAction('ContactModal', 'FORM_SUBMIT_START', 'Iniciando envío de formulario de contacto', {
+            project_name: projectName
+        });
 
         let telefonoCompleto = '';
         if (itiRef.current && formData.telefono) {
@@ -143,7 +160,8 @@ function ContactModal() {
             errorCapture.logWarning('ContactModal', 'VALIDATION_ERROR', 'Campos requeridos faltantes', {
                 nombre: !!submitData.nombre,
                 email: !!submitData.email,
-                mensaje: !!submitData.mensaje
+                mensaje: !!submitData.mensaje,
+                project_name: projectName
             });
             
             Swal.fire({
@@ -159,7 +177,8 @@ function ContactModal() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(submitData.email)) {
             errorCapture.logWarning('ContactModal', 'VALIDATION_ERROR', 'Email inválido', {
-                email: submitData.email
+                email: submitData.email,
+                project_name: projectName
             });
             
             Swal.fire({
@@ -179,7 +198,8 @@ function ContactModal() {
                 nombre: submitData.nombre,
                 email: submitData.email,
                 tiene_telefono: !!submitData.telefono,
-                mensaje_length: submitData.mensaje.length
+                mensaje_length: submitData.mensaje.length,
+                project_name: projectName
             });
 
             const response = await fetch('/api/enviar-contacto/', {
@@ -204,7 +224,8 @@ function ContactModal() {
                 errorCapture.logAction('ContactModal', 'FORM_SUBMIT_SUCCESS', 'Formulario de contacto enviado exitosamente', {
                     duration_ms: duration,
                     nombre: submitData.nombre,
-                    email: submitData.email
+                    email: submitData.email,
+                    project_name: projectName
                 });
                 
                 Swal.fire({
@@ -223,7 +244,8 @@ function ContactModal() {
                 error_message: error.message,
                 duration_ms: duration,
                 nombre: submitData.nombre,
-                email: submitData.email
+                email: submitData.email,
+                project_name: projectName
             });
             
             Swal.fire({
@@ -239,7 +261,9 @@ function ContactModal() {
 
     // Agregar event listeners a los botones de abrir
     useEffect(() => {
-        errorCapture.logAction('ContactModal', 'SETUP_LISTENERS', 'Configurando event listeners para botones de contacto');
+        errorCapture.logAction('ContactModal', 'SETUP_LISTENERS', 'Configurando event listeners para botones de contacto', {
+            project_name: projectName
+        });
         
         const abrirBtns = document.querySelectorAll('#abrirContacto, #abrirContacto2');
         const handleClick = (e) => {
@@ -257,7 +281,7 @@ function ContactModal() {
                 btn.removeEventListener('click', handleClick);
             });
         };
-    }, []);
+    }, [projectName]);
 
     if (!isOpen) return null;
 
@@ -267,9 +291,9 @@ function ContactModal() {
                 <div className="modal-header">
                     <div className="modal-logo">
                         <div className="modal-logo-icon">
-                            <ion-icon name="medical-outline"></ion-icon>
+                            <ion-icon name={logoIcon}></ion-icon>
                         </div>
-                        <div className="modal-logo-text">DermAlert IA</div>
+                        <div className="modal-logo-text">{projectName}</div>
                     </div>
                     <h3>Contáctanos</h3>
                     <p>Estamos aquí para ayudarte</p>
@@ -282,7 +306,9 @@ function ContactModal() {
                         className="close-modal" 
                         id="cerrarModal" 
                         onClick={() => {
-                            errorCapture.logAction('ContactModal', 'MODAL_CLOSE_BUTTON', 'Modal cerrado por botón X');
+                            errorCapture.logAction('ContactModal', 'MODAL_CLOSE_BUTTON', 'Modal cerrado por botón X', {
+                                project_name: projectName
+                            });
                             cerrarModal();
                         }}
                     >
@@ -352,7 +378,9 @@ function ContactModal() {
                             type="submit" 
                             className="btn-primary" 
                             disabled={loading}
-                            onClick={() => errorCapture.logAction('ContactModal', 'SUBMIT_BUTTON_CLICK', 'Botón enviar presionado')}
+                            onClick={() => errorCapture.logAction('ContactModal', 'SUBMIT_BUTTON_CLICK', 'Botón enviar presionado', {
+                                project_name: projectName
+                            })}
                         >
                             {loading ? 'Enviando...' : 'Enviar mensaje'}
                         </button>

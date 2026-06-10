@@ -9,6 +9,9 @@ import '../css/styles/global.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync, getAppVersionSync } from '../services/config';
+
 function Register() {
     const [formData, setFormData] = useState({
         first_name: '',
@@ -31,13 +34,21 @@ function Register() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+    const appVersion = getAppVersionSync();
+
     // Log de montaje
     useEffect(() => {
-        errorCapture.logAction('Register', 'MOUNT', 'Página de registro montada');
+        errorCapture.logAction('Register', 'MOUNT', 'Página de registro montada', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         return () => {
             errorCapture.logAction('Register', 'UNMOUNT', 'Página de registro desmontada');
         };
-    }, []);
+    }, [projectName, appVersion]);
 
     // Handlers para el toggle de contraseña
     const handleMouseDownPassword = () => setShowPassword(true);
@@ -267,7 +278,8 @@ function Register() {
         e.preventDefault();
 
         errorCapture.logAction('Register', 'REGISTER_ATTEMPT', 'Intento de registro', {
-            identificacion: formData.identificacion
+            identificacion: formData.identificacion,
+            project_name: projectName
         });
 
         if (!validateForm()) return;
@@ -322,7 +334,7 @@ function Register() {
                     icon: 'success',
                     title: '¡Registro exitoso!',
                     html: `<div style="text-align: center;">
-            <p>Tu cuenta ha sido creada correctamente.</p>
+            <p>Tu cuenta ha sido creada correctamente en ${projectName} v${appVersion}.</p>
             <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-top: 10px;">
               <strong style="color: #2f7a7a;">Usuario:</strong><br>
               <span style="font-weight: 600;">${fullName}</span>
@@ -402,9 +414,9 @@ function Register() {
                     <div className="auth-header">
                         <div className="auth-logo">
                             <div className="auth-logo-icon">
-                                <ion-icon name="medical-outline"></ion-icon>
+                                <ion-icon name={logoIcon}></ion-icon>
                             </div>
-                            <div className="auth-logo-text">DermAlert IA</div>
+                            <div className="auth-logo-text">{projectName}</div>
                         </div>
                         <h2>Crear cuenta</h2>
                         <div className="auth-header-wave">

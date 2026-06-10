@@ -8,10 +8,21 @@ import '../css/landing_page/landing-responsive.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync, getAppVersionSync } from '../services/config';
+
 function QRLanding() {
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+    const appVersion = getAppVersionSync();
+
     // Log de montaje/desmontaje
     useEffect(() => {
-        errorCapture.logAction('QRLanding', 'MOUNT', 'Página QRLanding montada');
+        errorCapture.logAction('QRLanding', 'MOUNT', 'Página QRLanding montada', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         
         // Registrar acceso por QR
         const referrer = document.referrer;
@@ -23,24 +34,28 @@ function QRLanding() {
             isMobile: isMobile,
             userAgent: userAgent,
             screenSize: `${window.innerWidth}x${window.innerHeight}`,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            project_name: projectName
         });
         
         return () => {
             errorCapture.logAction('QRLanding', 'UNMOUNT', 'Página QRLanding desmontada');
         };
-    }, []);
+    }, [projectName, appVersion]);
 
     // Log de vista cargada
     useEffect(() => {
-        errorCapture.logAction('QRLanding', 'VIEW_LOADED', 'Página QR Landing cargada correctamente');
+        errorCapture.logAction('QRLanding', 'VIEW_LOADED', 'Página QR Landing cargada correctamente', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         
         // Registrar tiempo de carga
         const loadTime = window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart;
         errorCapture.logAction('QRLanding', 'PAGE_LOAD_TIME', `Tiempo de carga: ${loadTime}ms`, {
             load_time_ms: loadTime
         });
-    }, []);
+    }, [projectName, appVersion]);
 
     return (
         <>
@@ -57,9 +72,9 @@ function QRLanding() {
                     <div className="qr-header">
                         <div className="logo">
                             <div className="logo-icon">
-                                <ion-icon name="medical-outline"></ion-icon>
+                                <ion-icon name={logoIcon}></ion-icon>
                             </div>
-                            <div className="logo-text">DermAlert IA</div>
+                            <div className="logo-text">{projectName}</div>
                         </div>
 
                         {/* Onda dentro del header */}
@@ -72,7 +87,7 @@ function QRLanding() {
 
                     {/* Icono principal */}
                     <div className="qr-icon">
-                        <ion-icon name="medical-outline"></ion-icon>
+                        <ion-icon name={logoIcon}></ion-icon>
                     </div>
 
                     {/* Títulos */}
@@ -84,7 +99,9 @@ function QRLanding() {
                         <Link 
                             to="/register/?next=/dashboard/" 
                             className="qr-btn qr-btn-primary"
-                            onClick={() => errorCapture.logAction('QRLanding', 'CREATE_ACCOUNT_CLICK', 'Click en botón Crear cuenta desde QR')}
+                            onClick={() => errorCapture.logAction('QRLanding', 'CREATE_ACCOUNT_CLICK', 'Click en botón Crear cuenta desde QR', {
+                                project_name: projectName
+                            })}
                         >
                             <ion-icon name="person-add-outline"></ion-icon>
                             Crear cuenta
@@ -92,7 +109,9 @@ function QRLanding() {
                         <Link 
                             to="/login/?next=/dashboard/" 
                             className="qr-btn qr-btn-secondary"
-                            onClick={() => errorCapture.logAction('QRLanding', 'LOGIN_CLICK', 'Click en botón Ya tengo cuenta desde QR')}
+                            onClick={() => errorCapture.logAction('QRLanding', 'LOGIN_CLICK', 'Click en botón Ya tengo cuenta desde QR', {
+                                project_name: projectName
+                            })}
                         >
                             <ion-icon name="log-in-outline"></ion-icon>
                             Ya tengo cuenta
@@ -104,7 +123,9 @@ function QRLanding() {
                         <Link 
                             to="/" 
                             className="back-home-btn"
-                            onClick={() => errorCapture.logAction('QRLanding', 'BACK_HOME_CLICK', 'Click en botón Volver al inicio desde QR')}
+                            onClick={() => errorCapture.logAction('QRLanding', 'BACK_HOME_CLICK', 'Click en botón Volver al inicio desde QR', {
+                                project_name: projectName
+                            })}
                         >
                             <ion-icon name="arrow-back-outline"></ion-icon>
                             Volver al inicio
@@ -113,7 +134,7 @@ function QRLanding() {
 
                     {/* Nota */}
                     <div className="qr-note">
-                        Al registrarte o iniciar sesión serás redirigido directamente a diagnóstico
+                        {projectName} v{appVersion} - Al registrarte o iniciar sesión serás redirigido directamente a diagnóstico
                     </div>
                 </div>
             </div>

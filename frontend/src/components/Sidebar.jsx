@@ -3,18 +3,26 @@ import React, { useEffect } from 'react';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync } from '../services/config';
+
 function Sidebar({ user, activeView, onViewChange, onLogout }) {
     
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+
     // Log de montaje/desmontaje
     useEffect(() => {
         errorCapture.logAction('Sidebar', 'MOUNT', 'Sidebar montada', {
             user_rol: user?.rol,
-            user_name: user?.first_name
+            user_name: user?.first_name,
+            project_name: projectName
         });
         return () => {
             errorCapture.logAction('Sidebar', 'UNMOUNT', 'Sidebar desmontada');
         };
-    }, [user]);
+    }, [user, projectName]);
 
     // Log de cambios de usuario (solo cuando se actualiza)
     useEffect(() => {
@@ -60,9 +68,9 @@ function Sidebar({ user, activeView, onViewChange, onLogout }) {
         <aside className="sidebar" id="sidebar">
             <div className="brand">
                 <div className="brand-logo">
-                    <ion-icon name="medical-outline"></ion-icon>
+                    <ion-icon name={logoIcon}></ion-icon>
                 </div>
-                <div>DermAlert IA</div>
+                <div>{projectName}</div>
             </div>
 
             <div className="user-info" id="userInfo">

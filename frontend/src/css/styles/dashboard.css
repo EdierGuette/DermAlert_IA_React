@@ -19,23 +19,46 @@
   flex-shrink: 0;
 }
 
-.brand {
-  font-weight: 800;
-  font-size: 24px;
-  color: var(--accent);
-  text-align: center;
-  margin-bottom: 10px;
+/* ============================================
+   ESTILOS PARA EL BRAND DEL SIDEBAR 
+   (MISMO ESTILO QUE LOGIN/REGISTER)
+   ============================================ */
+
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
   padding: 15px 0;
-  border-bottom: 2px solid var(--soft);
+  border-bottom: 2px solid #eef6f5;
   transition: all 0.3s ease;
 }
-.brand:hover {
-  transform: translateY(-2px);
-  text-shadow: 0 4px 8px rgba(47, 122, 122, 0.2);
+
+.sidebar .brand-logo {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  transform: rotate(-5deg);
+  transition: transform 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
-.brand span {
-  color: var(--accent-2);
-  font-weight: 700;
+
+.sidebar .brand-logo:hover {
+  transform: rotate(0deg) scale(1.1);
+}
+
+.sidebar .brand div:last-child {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2f7a7a;
+  letter-spacing: 0.5px;
 }
 
 .menu {
@@ -224,14 +247,24 @@
     border-bottom: 1px solid rgba(47, 122, 122, 0.1);
   }
   
-  .brand {
-    font-size: 18px;
+  .sidebar .brand {
+    gap: 8px;
+    padding: 10px 0;
     margin-bottom: 0;
     border-bottom: none;
     border-right: 2px solid var(--soft);
     padding-right: 12px;
     margin-right: 8px;
-    white-space: nowrap;
+  }
+  
+  .sidebar .brand-logo {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+  
+  .sidebar .brand div:last-child {
+    font-size: 18px;
   }
   
   .menu {
@@ -309,7 +342,7 @@
     justify-content: center !important;
     align-items: center !important;
     gap: 0 !important;
-    font-size: 0 !important; /* Oculta el texto */
+    font-size: 0 !important;
     white-space: nowrap !important;
     box-shadow: none !important;
     background: transparent !important;
@@ -357,14 +390,24 @@
     border-bottom: 1px solid rgba(47, 122, 122, 0.1);
   }
   
-  .brand {
-    font-size: 14px;
+  .sidebar .brand {
+    gap: 6px;
+    padding: 8px 0;
     margin-bottom: 0;
     border-bottom: none;
     border-right: 2px solid var(--soft);
     padding-right: 8px;
     margin-right: 4px;
-    white-space: nowrap;
+  }
+  
+  .sidebar .brand-logo {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+  
+  .sidebar .brand div:last-child {
+    font-size: 14px;
   }
   
   .menu {
@@ -381,7 +424,7 @@
     width: auto;
     min-width: 42px;
     flex: 0 1 auto;
-    flex-direction: row; /* HORIZONTAL */
+    flex-direction: row;
     justify-content: center;
     align-items: center;
     gap: 0;
@@ -442,7 +485,7 @@
     height: 42px !important;
     width: auto !important;
     min-width: 42px !important;
-    flex-direction: row !important; /* HORIZONTAL */
+    flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 0 !important;

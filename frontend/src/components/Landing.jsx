@@ -16,10 +16,21 @@ import ContactModal from './ContactModal';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync, getAppVersionSync } from '../services/config';
+
 function Landing() {
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+    const appVersion = getAppVersionSync();
+
     // Log de montaje/desmontaje
     useEffect(() => {
-        errorCapture.logAction('Landing', 'MOUNT', 'Landing page montada');
+        errorCapture.logAction('Landing', 'MOUNT', 'Landing page montada', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         
         // Inicializar Swiper
         errorCapture.logAction('Landing', 'SWIPER_INIT', 'Inicializando Swiper');
@@ -43,7 +54,7 @@ function Landing() {
         // Smooth scroll para enlaces internos
         errorCapture.logAction('Landing', 'SMOOTH_SCROLL_SETUP', 'Configurando smooth scroll para enlaces internos');
         
-        const smoothScrollHandler = (e) => {
+        const smoothScrollHandler = function(e) {
             e.preventDefault();
             const href = this.getAttribute('href');
             if (href === '#') return;
@@ -127,18 +138,21 @@ function Landing() {
             observer.disconnect();
             errorCapture.logAction('Landing', 'CLEANUP_COMPLETE', 'Recursos liberados correctamente');
         };
-    }, []);
+    }, [projectName, appVersion]);
 
     // Log cuando se carga la landing (vista)
     useEffect(() => {
-        errorCapture.logAction('Landing', 'VIEW_LOADED', 'Landing page cargada correctamente');
+        errorCapture.logAction('Landing', 'VIEW_LOADED', 'Landing page cargada correctamente', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         
         // Registrar tiempo de carga de la página
         const loadTime = window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart;
         errorCapture.logAction('Landing', 'PAGE_LOAD_TIME', `Tiempo de carga: ${loadTime}ms`, {
             load_time_ms: loadTime
         });
-    }, []);
+    }, [projectName, appVersion]);
 
     const slides = [
         { icon: 'medical-outline', title: 'Diagnóstico profesional', description: 'Apoyado por inteligencia artificial' },
@@ -161,9 +175,9 @@ function Landing() {
                 <div className="header-content">
                     <div className="logo">
                         <div className="logo-icon">
-                            <ion-icon name="medical-outline"></ion-icon>
+                            <ion-icon name={logoIcon}></ion-icon>
                         </div>
-                        <div>DermAlert IA</div>
+                        <div>{projectName}</div>
                     </div>
 
                     <nav className="nav-menu">
@@ -308,7 +322,7 @@ function Landing() {
             <section className="features" id="caracteristicas">
                 <div className="features-content">
                     <div className="features-title">
-                        <h2>¿Por qué elegir DermAlert IA?</h2>
+                        <h2>¿Por qué elegir {projectName}?</h2>
                         <p>Tecnología avanzada al servicio de tu salud</p>
                     </div>
 
@@ -340,11 +354,11 @@ function Landing() {
             <footer className="footer">
                 <div className="footer-content">
                     <div className="footer-logo">
-                        <ion-icon name="medical-outline"></ion-icon>
-                        <span>DermAlert IA</span>
+                        <ion-icon name={logoIcon}></ion-icon>
+                        <span>{projectName}</span>
                     </div>
                     <div className="footer-copyright">
-                        © 2025 DermAlert IA. Todos los derechos reservados.
+                        © 2025 {projectName} v{appVersion}. Todos los derechos reservados.
                     </div>
                     <div className="footer-contact">
                         <ion-icon name="mail-outline"></ion-icon>

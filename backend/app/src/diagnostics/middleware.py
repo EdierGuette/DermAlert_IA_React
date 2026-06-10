@@ -3,6 +3,7 @@ import time
 import sys
 from pathlib import Path
 from django.shortcuts import redirect
+from django.conf import settings
 
 # Importar backend_logger para logs HTTP
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -11,47 +12,52 @@ from backend_logger import log, log_error
 
 
 # ============================================
-# MIDDLEWARE EXISTENTE (PROTECCIÓN DE RUTAS)
+# MIDDLEWARE - PROTECCIÓN DE APIS CON REDIRECCIÓN A REACT
 # ============================================
 
 class AuthRequiredMiddleware:
     """
-    Middleware para proteger todas las rutas excepto las públicas.
-    Ahora el frontend es React, pero seguimos protegiendo las rutas del backend
-    para que no se acceda directamente a vistas que ya no se usan (login, register, dashboard)
+    Middleware para proteger las APIs.
+    Si el usuario no está autenticado, redirige al frontend de React.
     """
     def __init__(self, get_response):
         self.get_response = get_response
     
     def __call__(self, request):
-        # Rutas públicas que NO requieren autenticación
-        public_paths = [
-            '/',
-            '/login/',
-            '/register/',
-            '/qr-diagnostico/',
-            '/landing/api/enviar-contacto/',
+        # APIs públicas (NO requieren autenticación)
+        public_apis = [
+            '/api/register/',
+            '/api/login/',
+            '/api/enviar-contacto/',
+            '/api/estadisticas/',
+            '/api/logs/frontend/',
+            '/api/config/',
         ]
         
-        # APIs públicas (NO requieren autenticación)
-        if request.path.startswith('/api/') and (
-            'login' in request.path or 
-            'register' in request.path or
-            'enviar-contacto' in request.path or
-            'estadisticas' in request.path or
-            'logs/frontend' in request.path
-        ):
-            return self.get_response(request)
+        # Verificar si es una API pública
+        is_public_api = any(request.path.startswith(api) for api in public_apis)
         
         # Archivos estáticos siempre públicos
         if request.path.startswith('/static/'):
             return self.get_response(request)
         
-        # Si la ruta actual NO es pública
-        if request.path not in public_paths and not request.path.startswith('/api/'):
+        # Admin de Django (requiere su propia autenticación)
+        if request.path.startswith('/admin/'):
+            return self.get_response(request)
+        
+        # Health check (raíz) - público
+        if request.path == '/':
+            return self.get_response(request)
+        
+        # Si es una API y NO es pública
+        if request.path.startswith('/api/') and not is_public_api:
             # Si el usuario no está autenticado
             if not request.user.is_authenticated:
-                return redirect('/login/')
+                log('WARNING', 'AUTH', f'Acceso no autorizado a API: {request.path}, redirigiendo a login', {
+                    'ip': request.META.get('REMOTE_ADDR', 'unknown')
+                })
+                # Redirigir al login de React
+                return redirect('http://localhost:5173/login')
         
         response = self.get_response(request)
         return response

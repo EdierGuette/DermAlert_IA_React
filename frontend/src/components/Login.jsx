@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import confetti from 'canvas-confetti';
 
 // Importar CSS
 import '../css/auth.css';
@@ -9,27 +10,97 @@ import '../css/styles/global.css';
 // Importar ErrorCapture para logs
 import errorCapture from '../services/errorCapture';
 
+// Importar configuración
+import { getProjectNameSync, getLogoIconSync, getAppVersionSync } from '../services/config';
+
 function Login() {
     const [identificacion, setIdentificacion] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false); // ← NUEVO
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+
+    // Obtener configuración de forma síncrona (ya debería estar cargada)
+    const projectName = getProjectNameSync();
+    const logoIcon = getLogoIconSync();
+    const appVersion = getAppVersionSync();
 
     // Log de montaje/desmontaje
     useEffect(() => {
-        errorCapture.logAction('Login', 'MOUNT', 'Página de login montada');
+        errorCapture.logAction('Login', 'MOUNT', 'Página de login montada', {
+            project_name: projectName,
+            app_version: appVersion
+        });
         return () => {
             errorCapture.logAction('Login', 'UNMOUNT', 'Página de login desmontada');
         };
-    }, []);
+    }, [projectName, appVersion]);
+
+    // Función para lanzar confeti por encima del SweetAlert
+    const lanzarConfeti = () => {
+        // Crear un canvas que esté por encima de todo
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '99999';
+        document.body.appendChild(canvas);
+        
+        const myConfetti = confetti.create(canvas, {
+            resize: true,
+            useWorker: true
+        });
+        
+        const duration = 2000;
+        const animationEnd = Date.now() + duration;
+        
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+            
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    if (document.body.contains(canvas)) {
+                        document.body.removeChild(canvas);
+                    }
+                }, 500);
+                return;
+            }
+            
+            const particleCount = 50 * (timeLeft / duration);
+            
+            myConfetti({
+                startVelocity: 30,
+                spread: 360,
+                ticks: 60,
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            });
+            
+            myConfetti({
+                startVelocity: 30,
+                spread: 360,
+                ticks: 60,
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            });
+        }, 250);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         errorCapture.logAction('Login', 'LOGIN_ATTEMPT', 'Intento de inicio de sesión', {
             identificacion: identificacion,
-            hasPassword: !!password
+            hasPassword: !!password,
+            project_name: projectName
         });
 
         if (!identificacion || !password) {
@@ -83,7 +154,8 @@ function Login() {
                     user_id: data.user?.id,
                     user_rol: data.user?.rol,
                     duration_ms: duration,
-                    project_name: data.project_name
+                    project_name: data.project_name,
+                    app_version: data.app_version
                 });
 
                 localStorage.setItem('token', data.token);
@@ -91,23 +163,49 @@ function Login() {
 
                 const fullName = `${data.user.first_name} ${data.user.last_name}`;
 
-                await Swal.fire({
+                // Lanzar confeti por encima del SweetAlert
+                lanzarConfeti();
+
+                // Mostrar alerta con barra de progreso en reversa
+                Swal.fire({
+                    title: '¡Bienvenido!',
+                    html: `
+                        <div style="text-align: center;">
+                            <p style="margin-bottom: 15px; font-size: 16px;">Has iniciado sesión correctamente.</p>
+                            <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                                <strong style="color: #2f7a7a;">Usuario:</strong><br>
+                                <span style="font-weight: 600;">${fullName}</span>
+                            </div>
+                            <div style="width: 100%; height: 4px; background: #eef6f5; border-radius: 4px; overflow: hidden;">
+                                <div id="progressBar" style="width: 100%; height: 100%; background: linear-gradient(90deg, #2f7a7a, #1e5f5f); transition: width 0.1s linear;"></div>
+                            </div>
+                        </div>
+                    `,
                     icon: 'success',
-                    title: '¡Inicio de sesión exitoso!',
-                    html: `<div style="text-align: center;">
-            <p style="margin-bottom: 15px;">Has iniciado sesión correctamente en ${data.project_name || 'DermAlert IA'}.</p>
-            <div style="background: #eef6f5; padding: 12px; border-radius: 8px;">
-              <strong style="color: #2f7a7a;">Usuario:</strong><br>
-              <span style="font-weight: 600;">${fullName}</span>
-            </div>
-          </div>`,
-                    confirmButtonColor: '#2f7a7a',
-                    timer: 2000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        const progressBar = document.getElementById('progressBar');
+                        let width = 100;
+                        const interval = setInterval(() => {
+                            width -= 2;
+                            if (progressBar) {
+                                progressBar.style.width = width + '%';
+                            }
+                            if (width <= 0) {
+                                clearInterval(interval);
+                            }
+                        }, 40);
+                        
+                        setTimeout(() => {
+                            Swal.close();
+                            navigate('/dashboard');
+                        }, 2000);
+                    }
                 });
 
                 errorCapture.logAction('Login', 'REDIRECT', 'Redirigiendo a dashboard');
-                navigate('/dashboard');
             } else {
                 let errorMsg = 'Credenciales incorrectas';
                 let errorType = 'unknown';
@@ -186,9 +284,9 @@ function Login() {
                     <div className="auth-header">
                         <div className="auth-logo">
                             <div className="auth-logo-icon">
-                                <ion-icon name="medical-outline"></ion-icon>
+                                <ion-icon name={logoIcon}></ion-icon>
                             </div>
-                            <div className="auth-logo-text">DermAlert IA</div>
+                            <div className="auth-logo-text">{projectName}</div>
                         </div>
                         <h2>Iniciar sesión</h2>
                         <div className="auth-header-wave">
