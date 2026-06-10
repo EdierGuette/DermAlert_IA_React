@@ -11,12 +11,12 @@
   --sans: "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-* {
+/* * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
-}
+} */
 
 /* ========== PREVENIR SCROLL HORIZONTAL EN TODA LA PÁGINA ========== */
 html, body {

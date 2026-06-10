@@ -22,12 +22,13 @@
 @import './css/landing_page/contacto.css';
 @import './css/landing_page/estadisticas.css';
 
-/* Reset básico */
+/* Reset básico 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+*/
 
 #root {
   width: 100%;

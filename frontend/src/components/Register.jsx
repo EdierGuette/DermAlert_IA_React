@@ -27,6 +27,8 @@ function Register() {
     const [departamentosCargados, setDepartamentosCargados] = useState(false);
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({ strength: 0, text: '', class: '' });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
     // Log de montaje
@@ -37,22 +39,30 @@ function Register() {
         };
     }, []);
 
+    // Handlers para el toggle de contraseña
+    const handleMouseDownPassword = () => setShowPassword(true);
+    const handleMouseUpPassword = () => setShowPassword(false);
+    const handleMouseLeavePassword = () => setShowPassword(false);
+
+    const handleMouseDownConfirm = () => setShowConfirmPassword(true);
+    const handleMouseUpConfirm = () => setShowConfirmPassword(false);
+    const handleMouseLeaveConfirm = () => setShowConfirmPassword(false);
+
     // Cargar departamentos desde colombia.json
     useEffect(() => {
         errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_START', 'Cargando departamentos desde colombia.json');
-        
+
         const cargarDepartamentos = async () => {
             const startTime = Date.now();
             try {
                 const response = await fetch('/data/colombia.json');
                 const data = await response.json();
-                // Ordenar alfabéticamente
                 const ordenados = [...data].sort((a, b) =>
                     a.departamento.localeCompare(b.departamento, 'es')
                 );
                 setDepartamentos(ordenados);
                 setDepartamentosCargados(true);
-                
+
                 const duration = Date.now() - startTime;
                 errorCapture.logAction('Register', 'LOAD_DEPARTMENTS_SUCCESS', 'Departamentos cargados exitosamente', {
                     cantidad: ordenados.length,
@@ -79,7 +89,7 @@ function Register() {
     const handleDepartamentoChange = (e) => {
         const deptoNombre = e.target.value;
         errorCapture.logAction('Register', 'DEPARTMENT_CHANGE', `Departamento seleccionado: ${deptoNombre}`);
-        
+
         setFormData({ ...formData, departamento: deptoNombre, ciudad: '' });
 
         const deptoObj = departamentos.find(d => d.departamento === deptoNombre);
@@ -120,7 +130,7 @@ function Register() {
         }
 
         setPasswordStrength({ strength, text, class: classname });
-        
+
         errorCapture.logAction('Register', 'PASSWORD_STRENGTH', `Fortaleza de contraseña: ${text}`, {
             strength_level: strength,
             strength_text: text
@@ -130,8 +140,7 @@ function Register() {
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
-        
-        // Log para cambios en campos (solo en desarrollo, opcional)
+
         if (process.env.NODE_ENV === 'development' && !['password', 'password_confirm'].includes(id)) {
             errorCapture.logAction('Register', 'FIELD_CHANGE', `Campo ${id} modificado`, {
                 field: id,
@@ -329,7 +338,7 @@ function Register() {
             } else {
                 let errorMsg = 'Error en el registro';
                 let errorType = 'unknown';
-                
+
                 if (response.status >= 500) {
                     errorMsg = 'Error del servidor. Por favor, intente más tarde.';
                     errorType = 'server_error';
@@ -370,7 +379,7 @@ function Register() {
                 duration_ms: duration,
                 identificacion: formData.identificacion
             });
-            
+
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
@@ -562,15 +571,28 @@ function Register() {
                                     <div className="input-icon-wrapper">
                                         <ion-icon name="lock-closed-outline" className="input-icon"></ion-icon>
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             id="password"
                                             value={formData.password}
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
                                             onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo contraseña enfocado')}
+                                            style={{ fontSize: '13px', paddingRight: '45px' }}
                                         />
                                         <label htmlFor="password">Contraseña</label>
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onMouseDown={handleMouseDownPassword}
+                                            onMouseUp={handleMouseUpPassword}
+                                            onMouseLeave={handleMouseLeavePassword}
+                                            onTouchStart={handleMouseDownPassword}
+                                            onTouchEnd={handleMouseUpPassword}
+                                            onTouchCancel={handleMouseLeavePassword}
+                                        >
+                                            <ion-icon name={showPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
+                                        </button>
                                     </div>
                                     <div className="error-message-container">
                                         <div className="error-message" id="error-password"></div>
@@ -580,15 +602,28 @@ function Register() {
                                     <div className="input-icon-wrapper">
                                         <ion-icon name="lock-closed-outline" className="input-icon"></ion-icon>
                                         <input
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             id="password_confirm"
                                             value={formData.password_confirm}
                                             onChange={handleChange}
                                             placeholder=" "
                                             required
                                             onFocus={() => errorCapture.logAction('Register', 'FIELD_FOCUS', 'Campo confirmar contraseña enfocado')}
+                                            style={{ fontSize: '13px', paddingRight: '45px' }}
                                         />
                                         <label htmlFor="password_confirm">Confirmar Contraseña</label>
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onMouseDown={handleMouseDownConfirm}
+                                            onMouseUp={handleMouseUpConfirm}
+                                            onMouseLeave={handleMouseLeaveConfirm}
+                                            onTouchStart={handleMouseDownConfirm}
+                                            onTouchEnd={handleMouseUpConfirm}
+                                            onTouchCancel={handleMouseLeaveConfirm}
+                                        >
+                                            <ion-icon name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
+                                        </button>
                                     </div>
                                     <div className="error-message-container">
                                         <div className="error-message" id="error-password_confirm"></div>
@@ -612,9 +647,9 @@ function Register() {
                                 </div>
                             )}
 
-                            <button 
-                                type="submit" 
-                                className="auth-btn" 
+                            <button
+                                type="submit"
+                                className="auth-btn"
                                 disabled={loading}
                                 onClick={() => errorCapture.logAction('Register', 'SUBMIT_BUTTON_CLICK', 'Botón de registro presionado')}
                             >
@@ -624,8 +659,8 @@ function Register() {
                         </form>
 
                         <div className="auth-footer">
-                            <p>¿Ya tienes una cuenta? 
-                                <Link 
+                            <p>¿Ya tienes una cuenta? &nbsp;
+                                <Link
                                     to="/login"
                                     onClick={() => errorCapture.logAction('Register', 'LOGIN_LINK_CLICK', 'Click en enlace de inicio de sesión')}
                                 >
@@ -638,8 +673,8 @@ function Register() {
             </div>
 
             <div className="back-to-home">
-                <Link 
-                    to="/" 
+                <Link
+                    to="/"
                     className="back-btn"
                     onClick={handleBackToHome}
                 >

@@ -33,19 +33,18 @@ html, body {
     position: relative;
 }
 
+/* ===== AJUSTES FINALES - CENTRADO Y TAMAÑOS ===== */
 body {
-    font-family: var(--sans);
-    background: linear-gradient(135deg, var(--bg) 0%, #e8f4f3 100%);
-    color: #234;
-    min-height: 100vh;
-    width: 100%;
-    max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 100vh;
+    margin: 0;
     padding: 20px;
+    font-family: var(--sans);
+    background: linear-gradient(135deg, var(--bg) 0%, #e8f4f3 100%);
+    color: #234;
     position: relative;
-    overflow-x: hidden;
 }
 
 /* Ondas de fondo */
@@ -64,20 +63,22 @@ body::before {
 
 /* Contenedor principal */
 .auth-wrapper {
-    width: 100%;
-    max-width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: calc(100vh - 40px);
+    width: 100%;
+    max-width: 100%;
+    flex-direction: column;
 }
 
+/* Reducir tamaño general del formulario */
 .auth-container {
+    max-width: 480px;
+    margin: 0 auto;
     width: 100%;
-    max-width: 500px;
     position: relative;
     z-index: 10;
-    margin: 0 auto;
 }
 
 .auth-card {
@@ -174,19 +175,20 @@ body::before {
 
 /* Cuerpo del formulario */
 .auth-body {
-    padding: 20px 30px 25px 30px;
+    padding: 15px 25px 20px 25px;
     background: white;
 }
 
+/* Separación entre campos */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px !important;
 }
 
 .form-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .form-row .form-group {
@@ -203,72 +205,62 @@ body::before {
     width: 100%;
 }
 
-/* Contenedor del input con ícono - altura fija */
+/* Contenedor del input con ícono */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
     margin: 0;
     padding: 0;
-    height: 58px;
 }
 
-.input-icon {
+/* Inputs más pequeños */
+.form-group .input-icon-wrapper input,
+.form-group .input-icon-wrapper select {
+    height: 56px !important;
+    min-height: 56px !important;
+    font-size: 14px !important;
+    padding: 18px 16px 0px 44px !important;
+    border: 2px solid var(--soft);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: #234;
+    transition: var(--transition);
+    outline: none;
+    font-family: var(--sans);
+    width: 100%;
+    margin: 0;
+    display: block;
+    line-height: 1 !important;
+}
+
+/* Select específico */
+.form-group .input-icon-wrapper select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232f7a7a' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    cursor: pointer;
+}
+
+/* Ícono más pequeño */
+.form-group .input-icon-wrapper .input-icon {
     position: absolute;
-    left: 14px;
+    font-size: 18px !important;
+    left: 14px !important;
     top: 50%;
     transform: translateY(-50%);
     color: var(--accent);
-    font-size: 18px;
     z-index: 2;
     opacity: 0.6;
     transition: var(--transition);
     pointer-events: none;
 }
 
-.form-group input {
-    padding: 16px 14px 0 40px;
-    border: 2px solid var(--soft);
-    border-radius: var(--radius-sm);
-    background: white;
-    color: #234;
-    font-size: 15px;
-    transition: var(--transition);
-    width: 100%;
-    height: 58px;
-    outline: none;
-    font-family: var(--sans);
-    margin: 0;
-    display: block;
-    line-height: 58px;
-}
-
-.form-group select {
-    padding: 0 40px;
-    border: 2px solid var(--soft);
-    border-radius: var(--radius-sm);
-    background: white;
-    color: #234;
-    font-size: 15px;
-    transition: var(--transition);
-    width: 100%;
-    height: 58px;
-    outline: none;
-    font-family: var(--sans);
-    margin: 0;
-    display: block;
-    line-height: normal;
-}
-
-.form-group select {
-    appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232f7a7a' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 14px;
-    line-height: 1;
-    text-align: left;
-    text-indent: 0;
-    cursor: pointer;
+/* Hover y focus */
+.form-group input:hover,
+.form-group select:hover {
+    border-color: rgba(47,122,122,0.3);
 }
 
 .form-group input:focus,
@@ -277,82 +269,71 @@ body::before {
     box-shadow: 0 0 0 3px rgba(47,122,122,0.1);
 }
 
-.form-group input:hover,
-.form-group select:hover {
-    border-color: rgba(47,122,122,0.3);
-}
-
-/* ===== ESTILOS ESPECÍFICOS PARA SELECTS FLOTANTES ===== */
-.form-group select option[value=""][disabled] {
-    color: #999;
-    background: white;
-}
-
-.form-group select:invalid ~ label {
-    top: 20px;
-    left: 40px;
-    font-size: 14px;
-    color: #7c8f8f;
-    background: transparent;
-    opacity: 0.8;
-}
-
-.form-group select:valid ~ label,
-.form-group select:focus ~ label {
-    top: 6px;
-    left: 36px;
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-    background: white;
-    opacity: 1;
-    padding: 0 6px;
-    transform: translateY(0);
-}
-
-.form-group select:disabled ~ label {
-    color: #999;
-    opacity: 0.6;
-    background: transparent;
-}
-
-/* ===== ETIQUETA FLOTANTE PARA INPUTS ===== */
-.form-group label {
-    position: absolute;
-    left: 40px;
-    top: 20px;
-    font-weight: 400;
-    color: #7c8f8f;
-    font-size: 14px;
-    transition: var(--transition);
-    pointer-events: none;
-    background: transparent;
-    padding: 0 4px;
-    transform-origin: left top;
-    opacity: 0.8;
-    z-index: 1;
-    line-height: 1;
-    margin: 0;
-    white-space: nowrap;
-}
-
-.form-group input:focus ~ label,
-.form-group input:not(:placeholder-shown) ~ label {
-    top: 6px;
-    left: 36px;
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-    background: white;
-    opacity: 1;
-    padding: 0 6px;
-    line-height: 1;
-    transform: translateY(0);
-}
-
+/* Placeholder invisible para floating label */
 .form-group input::placeholder,
 .form-group select::placeholder {
     color: transparent;
+}
+
+/* ===== ETIQUETA FLOTANTE ===== */
+/* Etiqueta flotante más pequeña */
+.form-group .input-icon-wrapper label {
+    position: absolute;
+    font-size: 14px !important;
+    left: 44px !important;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 400;
+    color: #7c8f8f;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    background: transparent;
+    padding: 0 4px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+/* Etiqueta flotante cuando sube - PARA INPUTS */
+.form-group .input-icon-wrapper input:focus ~ label,
+.form-group .input-icon-wrapper input:not(:placeholder-shown) ~ label {
+    font-size: 11px !important;
+    top: 8px !important;
+    left: 40px !important;
+    transform: translateY(0);
+    color: var(--accent);
+    font-weight: 600;
+    background: white;
+    padding: 0 6px;
+}
+
+/* Etiqueta flotante cuando sube - PARA SELECTS (CORREGIDO) */
+.form-group .input-icon-wrapper select:focus ~ label,
+.form-group .input-icon-wrapper select:not([value=""]):valid ~ label {
+    font-size: 11px !important;
+    top: 8px !important;
+    left: 40px !important;
+    transform: translateY(0);
+    color: var(--accent);
+    font-weight: 600;
+    background: white;
+    padding: 0 6px;
+}
+
+/* Select cuando está vacío - la etiqueta se mantiene centrada */
+.form-group .input-icon-wrapper select:invalid ~ label {
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 14px !important;
+    left: 48px !important;
+    background: transparent !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA CONTRASEÑAS (TEXTO MÁS PEQUEÑO) ===== */
+.form-group .input-icon-wrapper input#password,
+.form-group .input-icon-wrapper input#password_confirm {
+    font-size: 13px !important;
+    letter-spacing: normal !important;
+    padding-right: 45px !important;
 }
 
 /* Contenedor de mensajes de error */
@@ -370,8 +351,8 @@ body::before {
     line-height: 18px;
     display: none;
     padding-left: 4px;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin-top: 4px;
+    margin-bottom: 0;
 }
 
 .error-message:not(:empty) {
@@ -396,7 +377,7 @@ body::before {
     color: #666;
     font-size: 12px;
     line-height: 1.3;
-    margin-top: 2px;
+    margin-top: 4px;
     margin-bottom: 0;
     display: block;
     padding-left: 4px;
@@ -405,7 +386,7 @@ body::before {
 
 /* Indicador de fortaleza de contraseña */
 .password-strength {
-    margin-top: 4px;
+    margin-top: 8px;
     margin-bottom: 0;
     width: 100%;
 }
@@ -448,14 +429,14 @@ body::before {
     color: var(--success);
 }
 
-/* Botón principal */
+/* Botón más pequeño */
 .auth-btn {
     background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: white;
     border: none;
     border-radius: 50px;
-    padding: 14px 20px;
-    font-size: 16px;
+    padding: 14px 22px !important;
+    font-size: 15px !important;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -463,12 +444,11 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 10px;
+    margin-top: 8px !important;
     width: 100%;
     letter-spacing: 0.3px;
 }
-
 .auth-btn:hover {
     background: linear-gradient(135deg, var(--accent-dark), #154a4a);
     transform: translateY(-2px);
@@ -511,9 +491,10 @@ body::before {
     border-top: 1px solid var(--soft);
 }
 
+/* Texto del footer más pequeño */
 .auth-footer p {
+    font-size: 13px !important;
     color: var(--muted);
-    font-size: 14px;
 }
 
 .auth-footer a {
@@ -521,6 +502,7 @@ body::before {
     text-decoration: none;
     font-weight: 600;
     transition: var(--transition);
+    font-size: 13px !important;
 }
 
 .auth-footer a:hover {
@@ -528,15 +510,17 @@ body::before {
     text-decoration: underline;
 }
 
-/* ===== BOTÓN VOLVER AL INICIO - ESTILOS BASE ===== */
+/* ===== BOTÓN VOLVER AL INICIO ===== */
+/* Margen inferior del formulario */
 .back-to-home {
+    margin-top: 16px !important;
     width: 100%;
 }
 
 .back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: white;
     color: var(--accent);
     text-decoration: none;
@@ -546,6 +530,8 @@ body::before {
     cursor: pointer;
     border: 2px solid var(--accent);
     box-shadow: var(--shadow-sm);
+    padding: 10px 24px !important;
+    font-size: 14px !important;
 }
 
 .back-btn:hover {
@@ -562,7 +548,7 @@ body::before {
 /* ===== BOTÓN PARA MOSTRAR/OCULTAR CONTRASEÑA ===== */
 .password-toggle {
     position: absolute;
-    right: 14px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
@@ -590,17 +576,6 @@ body::before {
     padding-right: 45px;
 }
 
-#password,
-#password_confirm {
-    padding-right: 45px !important;
-    letter-spacing: normal !important;
-}
-
-#password::placeholder,
-#password_confirm::placeholder {
-    letter-spacing: normal !important;
-}
-
 /* Estilos para SweetAlert */
 .swal2-popup {
     border-radius: var(--radius) !important;
@@ -617,107 +592,33 @@ body::before {
     border-radius: 50px !important;
 }
 
+/* ===== TEXTO MÁS PEQUEÑO EN LAS ETIQUETAS DE CONTRASEÑAS ===== */
+
+.form-group .input-icon-wrapper label[for="password_confirm"] {
+    font-size: 12px !important;
+}
+
+.form-group .input-icon-wrapper label[for="password"] {
+    font-size: 14px !important;
+}
+
+.form-group .input-icon-wrapper input#password:focus ~ label[for="password"],
+.form-group .input-icon-wrapper input#password:not(:placeholder-shown) ~ label[for="password"],
+.form-group .input-icon-wrapper input#password_confirm:focus ~ label[for="password_confirm"],
+.form-group .input-icon-wrapper input#password_confirm:not(:placeholder-shown) ~ label[for="password_confirm"] {
+    font-size: 11px !important;
+}
 /* ========== RESPONSIVE ========== */
 
 /* Pantallas grandes (escritorio) - Botón fijo en esquina inferior izquierda */
 @media (min-width: 769px) {
-    body {
-        padding: 20px;
-    }
-    
-    .auth-container {
-        max-width: 480px;
-    }
-    
-    .auth-body {
-        padding: 15px 25px 20px 25px;
-    }
-    
-    .form-group input {
-        height: 52px;
-        font-size: 14px;
-        padding: 14px 14px 0 40px;
-    }
-
-    .form-group select {
-        height: 52px;
-        font-size: 14px;
-        padding: 0 40px;
-        line-height: normal;
-    }
-    
-    .input-icon-wrapper {
-        height: 52px;
-    }
-    
-    .form-group label {
-        top: 18px;
-        font-size: 14px;
-    }
-
-    
-    .form-group input:focus ~ label,
-    .form-group input:not(:placeholder-shown) ~ label,
-    .form-group select:focus ~ label,
-    .form-group select:valid ~ label {
-        top: 5px;
-        font-size: 11px;
-    }
-    
-    .form-group select:invalid ~ label {
-        top: 18px;
-        font-size: 14px;
-    }
-
-    #password + label,
-    #password_confirm + label {
-        font-size: 12px;
-    }
-    
-    #password:focus + label,
-    #password:not(:placeholder-shown) + label,
-    #password_confirm:focus + label,
-    #password_confirm:not(:placeholder-shown) + label {
-        font-size: 11px;
-    }
-
-    .auth-btn {
-        padding: 12px 18px;
-        font-size: 15px;
-        margin-top: 12px;
-    }
-    
-    .auth-footer {
-        margin-top: 12px;
-        padding-top: 10px;
-    }
-    
-    .auth-footer p {
-        font-size: 13px;
-    }
-    
     .back-to-home {
         position: fixed;
         bottom: 20px;
         left: 20px;
         width: auto;
-        margin: 0;
+        margin: 0 !important;
         z-index: 1000;
-    }
-    
-    .back-btn {
-        padding: 10px 20px;
-        font-size: 14px;
-    }
-    
-    #password,
-    #password_confirm {
-        font-size: 14px !important;
-    }
-
-    #password::placeholder,
-    #password_confirm::placeholder {
-        font-size: 14px !important;
     }
 }
 
@@ -725,14 +626,6 @@ body::before {
 @media (max-width: 768px) {
     body {
         padding: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-    }
-    
-    .auth-wrapper {
-        justify-content: center;
     }
     
     .auth-container {
@@ -758,54 +651,48 @@ body::before {
     }
     
     .auth-body {
-        padding: 15px 20px 20px 20px;
+        padding: 12px 20px 16px 20px;
     }
     
     .auth-form {
-        gap: 4px;
+        gap: 10px;
     }
     
     .form-row {
         flex-direction: column;
-        gap: 4px;
+        gap: 10px;
     }
     
-    .input-icon-wrapper {
-        height: 50px;
+    .form-group .input-icon-wrapper input,
+    .form-group .input-icon-wrapper select {
+        height: 52px !important;
+        min-height: 52px !important;
+        font-size: 14px !important;
+        padding: 14px 14px 2px 44px !important;
+        line-height: 1 !important;
     }
     
-    .form-group input {
-        height: 50px;
-        padding: 12px 12px 0 36px;
-        font-size: 14px;
-        line-height: 50px;
-    }
-
-    .form-group select {
-        height: 50px;
-        padding: 0 36px;
-        font-size: 14px;
-        line-height: normal;
+    .form-group .input-icon-wrapper .input-icon {
+        font-size: 16px !important;
+        left: 12px !important;
     }
     
-    .input-icon {
-        left: 12px;
-        font-size: 16px;
+    .form-group .input-icon-wrapper label {
+        font-size: 13px !important;
+        left: 44px !important;
     }
     
-    .form-group label {
-        left: 36px;
-        top: 17px;
-        font-size: 13px;
+    .form-group .input-icon-wrapper input:focus ~ label,
+    .form-group .input-icon-wrapper input:not(:placeholder-shown) ~ label,
+    .form-group .input-icon-wrapper select:focus ~ label,
+    .form-group .input-icon-wrapper select:not([value=""]):valid ~ label {
+        top: 8px !important;
+        left: 40px !important;
+        font-size: 11px !important;
     }
     
-    .form-group input:focus ~ label,
-    .form-group input:not(:placeholder-shown) ~ label,
-    .form-group select:focus ~ label,
-    .form-group select:valid ~ label {
-        top: 5px;
-        left: 32px;
-        font-size: 10px;
+    .form-group .input-icon-wrapper select:invalid ~ label {
+        font-size: 13px !important;
     }
     
     .error-message {
@@ -819,9 +706,8 @@ body::before {
     }
     
     .auth-btn {
-        padding: 12px;
-        font-size: 14px;
-        margin-top: 12px;
+        padding: 12px 18px !important;
+        font-size: 14px !important;
     }
     
     .auth-footer p {
@@ -833,26 +719,13 @@ body::before {
         bottom: auto;
         left: auto;
         width: 100%;
-        max-width: 100%;
-        margin-top: 20px;
-        margin-bottom: 10px;
+        margin-top: 16px !important;
         text-align: left;
     }
     
     .back-btn {
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-    
-    #password,
-    #password_confirm {
-        padding-right: 40px !important;
-        font-size: 14px !important;
-    }
-
-    #password::placeholder,
-    #password_confirm::placeholder {
-        font-size: 14px !important;
+        padding: 7px 15px !important;
+        font-size: 12px !important;
     }
 }
 
@@ -881,50 +754,44 @@ body::before {
     }
     
     .auth-body {
-        padding: 12px 15px 15px 15px;
+        padding: 10px 15px 12px 15px;
     }
     
-    .form-group input {
-        height: 46px;
-        font-size: 13px;
-        padding: 11px 12px 0 34px;
-    }
-
-    .form-group select {
-        height: 46px;
-        font-size: 13px;
-        padding: 0 34px;
-        line-height: normal;
+    .form-group .input-icon-wrapper input,
+    .form-group .input-icon-wrapper select {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 13px !important;
+        padding: 12px 12px 2px 40px !important;
+        line-height: 1 !important;
     }
     
-    .input-icon-wrapper {
-        height: 46px;
+    .form-group .input-icon-wrapper .input-icon {
+        font-size: 15px !important;
+        left: 10px !important;
     }
     
-    .input-icon {
-        left: 10px;
-        font-size: 14px;
+    .form-group .input-icon-wrapper label {
+        font-size: 12px !important;
+        left: 40px !important;
     }
     
-    .form-group label {
-        left: 34px;
-        top: 15px;
-        font-size: 12px;
+    .form-group .input-icon-wrapper input:focus ~ label,
+    .form-group .input-icon-wrapper input:not(:placeholder-shown) ~ label,
+    .form-group .input-icon-wrapper select:focus ~ label,
+    .form-group .input-icon-wrapper select:not([value=""]):valid ~ label {
+        top: 9px !important;
+        left: 36px !important;
+        font-size: 9px !important;
     }
     
-    .form-group input:focus ~ label,
-    .form-group input:not(:placeholder-shown) ~ label,
-    .form-group select:focus ~ label,
-    .form-group select:valid ~ label {
-        top: 4px;
-        left: 30px;
-        font-size: 9px;
+    .form-group .input-icon-wrapper select:invalid ~ label {
+        font-size: 12px !important;
     }
     
     .auth-btn {
-        padding: 10px;
-        font-size: 13px;
-        margin-top: 10px;
+        padding: 11px 16px !important;
+        font-size: 13px !important;
     }
     
     .auth-footer p {
@@ -932,23 +799,11 @@ body::before {
     }
     
     .back-to-home {
-        margin-top: 15px;
+        margin-top: 14px !important;
     }
     
     .back-btn {
-        padding: 6px 14px;
-        font-size: 12px;
-    }
-    
-    #password,
-    #password_confirm {
-        padding-right: 35px !important;
-        font-size: 13px !important;
-    }
-
-    #password::placeholder,
-    #password_confirm::placeholder {
-        font-size: 13px !important;
+        padding: 6px 12px !important;
+        font-size: 11px !important;
     }
 }
-

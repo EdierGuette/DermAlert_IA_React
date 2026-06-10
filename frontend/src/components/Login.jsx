@@ -13,6 +13,7 @@ function Login() {
     const [identificacion, setIdentificacion] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false); // ← NUEVO
     const navigate = useNavigate();
 
     // Log de montaje/desmontaje
@@ -110,7 +111,7 @@ function Login() {
             } else {
                 let errorMsg = 'Credenciales incorrectas';
                 let errorType = 'unknown';
-                
+
                 if (response.status === 400 || response.status === 401) {
                     errorMsg = 'Contraseña incorrecta';
                     errorType = 'invalid_credentials';
@@ -149,7 +150,7 @@ function Login() {
                 duration_ms: duration,
                 identificacion: identificacion
             });
-            
+
             Swal.fire({
                 icon: 'error',
                 title: 'Error de conexión',
@@ -163,6 +164,19 @@ function Login() {
 
     const handleBackToHome = () => {
         errorCapture.logAction('Login', 'BACK_TO_HOME', 'Usuario regresa a la página principal');
+    };
+
+    // Handlers para el toggle de contraseña (muestra mientras se presiona)
+    const handleMouseDown = () => {
+        setShowPassword(true);
+    };
+
+    const handleMouseUp = () => {
+        setShowPassword(false);
+    };
+
+    const handleMouseLeave = () => {
+        setShowPassword(false);
     };
 
     return (
@@ -216,7 +230,7 @@ function Login() {
                                 <div className="input-icon-wrapper">
                                     <ion-icon name="lock-closed-outline" className="input-icon"></ion-icon>
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         id="password"
                                         value={password}
                                         onChange={(e) => {
@@ -232,15 +246,27 @@ function Login() {
                                         required
                                     />
                                     <label htmlFor="password">Contraseña</label>
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        onMouseDown={handleMouseDown}
+                                        onMouseUp={handleMouseUp}
+                                        onMouseLeave={handleMouseLeave}
+                                        onTouchStart={handleMouseDown}
+                                        onTouchEnd={handleMouseUp}
+                                        onTouchCancel={handleMouseLeave}
+                                    >
+                                        <ion-icon name={showPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
+                                    </button>
                                 </div>
                                 <div className="error-message-container">
                                     <div className="error-message" id="error-password"></div>
                                 </div>
                             </div>
 
-                            <button 
-                                type="submit" 
-                                className="auth-btn" 
+                            <button
+                                type="submit"
+                                className="auth-btn"
                                 disabled={loading}
                                 onClick={() => errorCapture.logAction('Login', 'SUBMIT_BUTTON_CLICK', 'Botón de inicio de sesión presionado')}
                             >
@@ -250,8 +276,8 @@ function Login() {
                         </form>
 
                         <div className="auth-footer">
-                            <p>¿No tienes una cuenta? 
-                                <Link 
+                            <p>¿No tienes una cuenta? &nbsp;
+                                <Link
                                     to="/register"
                                     onClick={() => errorCapture.logAction('Login', 'REGISTER_LINK_CLICK', 'Click en enlace de registro')}
                                 >
@@ -264,8 +290,8 @@ function Login() {
             </div>
 
             <div className="back-to-home">
-                <Link 
-                    to="/" 
+                <Link
+                    to="/"
                     className="back-btn"
                     onClick={handleBackToHome}
                 >
