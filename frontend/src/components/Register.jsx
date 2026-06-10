@@ -148,7 +148,6 @@ function Register() {
         
         setFormData(prev => ({ ...prev, [id]: value }));
 
-        // Validaciones en tiempo real
         switch (id) {
             case 'first_name':
                 validateNombre(value);
@@ -157,17 +156,14 @@ function Register() {
                 validateApellido(value);
                 break;
             case 'identificacion':
-                // Permitir escribir, solo validar y mostrar mensaje
                 validateIdentificacion(value);
                 break;
             case 'telefono':
-                // Permitir escribir, solo validar y mostrar mensaje
                 validateTelefono(value);
                 break;
             case 'password':
                 validatePassword(value);
                 checkPasswordStrength(value);
-                // Si hay confirmación escrita, validarla también
                 if (formData.password_confirm) {
                     validatePasswordConfirm(formData.password_confirm, value);
                 }
@@ -320,31 +316,31 @@ function Register() {
 
             const data = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
+        if (response.ok) {
+            // Guardar token y usuario
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
 
-                const fullName = `${data.user.first_name} ${data.user.last_name}`;
+            const fullName = `${data.user.first_name} ${data.user.last_name}`;
 
-                await Swal.fire({
-                    icon: 'success',
-                    title: '¡Registro exitoso!',
-                    html: `<div style="text-align: center;">
-                        <p>Tu cuenta ha sido creada correctamente.</p>
-                        <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-top: 10px;">
-                            <strong style="color: #2f7a7a;">Usuario:</strong><br>
-                            <span style="font-weight: 600;">${fullName}</span>
-                        </div>
-                    </div>`,
-                    confirmButtonColor: '#2f7a7a',
-                    timer: 2500,
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                });
+            await Swal.fire({
+                icon: 'success',
+                title: '¡Registro exitoso!',
+                html: `<div style="text-align: center;">
+                    <p>Tu cuenta ha sido creada correctamente.</p>
+                    <div style="background: #eef6f5; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                        <strong style="color: #2f7a7a;">Usuario:</strong><br>
+                        <span style="font-weight: 600;">${fullName}</span>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 14px;">Ahora puedes iniciar sesión con tus credenciales.</p>
+                </div>`,
+                confirmButtonColor: '#2f7a7a',
+                timer: 3000,
+                showConfirmButton: false
+            });
 
-                navigate('/dashboard');
-            } else {
+            navigate('/login');  // ← REDIRIGIR AL LOGIN
+        } else {
                 let errorMsg = 'Error en el registro';
                 if (data.identificacion) {
                     errorMsg = 'El número de identificación ya está registrado';

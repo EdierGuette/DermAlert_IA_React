@@ -3,6 +3,7 @@ import time
 import sys
 from pathlib import Path
 from django.shortcuts import redirect
+from django.http import JsonResponse
 from django.conf import settings
 
 # Importar backend_logger para logs HTTP
@@ -12,13 +13,14 @@ from backend_logger import log, log_error
 
 
 # ============================================
-# MIDDLEWARE - PROTECCIÓN DE APIS CON REDIRECCIÓN A REACT
+# MIDDLEWARE - PROTECCIÓN DE APIS
 # ============================================
 
 class AuthRequiredMiddleware:
     """
     Middleware para proteger las APIs.
-    Si el usuario no está autenticado, redirige al frontend de React.
+    Si el usuario no está autenticado y es API, devuelve 401.
+    Si es una ruta HTML (que ya no usamos), redirige a React.
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -49,15 +51,33 @@ class AuthRequiredMiddleware:
         if request.path == '/':
             return self.get_response(request)
         
-        # Si es una API y NO es pública
-        if request.path.startswith('/api/') and not is_public_api:
-            # Si el usuario no está autenticado
-            if not request.user.is_authenticated:
-                log('WARNING', 'AUTH', f'Acceso no autorizado a API: {request.path}, redirigiendo a login', {
-                    'ip': request.META.get('REMOTE_ADDR', 'unknown')
-                })
-                # Redirigir al login de React
-                return redirect('http://localhost:5173/login')
+        # ============================================
+        # PARA APIs: devolver JSON en lugar de redirigir
+        # ============================================
+        if request.path.startswith('/api/'):
+            # Si es una API y NO es pública
+            if not is_public_api:
+                # Si el usuario no está autenticado
+                if not request.user.is_authenticated:
+                    log('WARNING', 'AUTH', f'Acceso no autorizado a API: {request.path}', {
+                        'ip': request.META.get('REMOTE_ADDR', 'unknown')
+                    })
+                    # Devolver JSON con error 401 (NO redirigir)
+                    return JsonResponse({
+                        'error': 'No autenticado',
+                        'detail': 'Debe iniciar sesión para acceder a este recurso'
+                    }, status=401)
+        
+        # ============================================
+        # Para rutas HTML (login, register, etc.) - redirigir a React
+        # ============================================
+        html_routes = ['/login/', '/register/', '/dashboard/', '/qr-diagnostico/']
+        if request.path in html_routes:
+            # Si ya está autenticado y va a login/register, redirigir a dashboard
+            if request.user.is_authenticated and request.path in ['/login/', '/register/']:
+                return redirect('http://localhost:5173/dashboard')
+            # Redirigir a React
+            return redirect(f'http://localhost:5173{request.path}')
         
         response = self.get_response(request)
         return response

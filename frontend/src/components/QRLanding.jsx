@@ -97,7 +97,7 @@ function QRLanding() {
                     {/* Opciones de botones */}
                     <div className="qr-options">
                         <Link 
-                            to="/register/?next=/dashboard/" 
+                            to="/register"
                             className="qr-btn qr-btn-primary"
                             onClick={() => errorCapture.logAction('QRLanding', 'CREATE_ACCOUNT_CLICK', 'Click en botón Crear cuenta desde QR', {
                                 project_name: projectName
@@ -107,7 +107,7 @@ function QRLanding() {
                             Crear cuenta
                         </Link>
                         <Link 
-                            to="/login/?next=/dashboard/" 
+                            to="/login"
                             className="qr-btn qr-btn-secondary"
                             onClick={() => errorCapture.logAction('QRLanding', 'LOGIN_CLICK', 'Click en botón Ya tengo cuenta desde QR', {
                                 project_name: projectName
@@ -134,7 +134,7 @@ function QRLanding() {
 
                     {/* Nota */}
                     <div className="qr-note">
-                        {projectName} v{appVersion} - Al registrarte o iniciar sesión serás redirigido directamente a diagnóstico
+                        {projectName} v{appVersion} - Regístrate o inicia sesión para comenzar
                     </div>
                 </div>
             </div>

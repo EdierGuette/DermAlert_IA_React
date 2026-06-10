@@ -7,10 +7,13 @@ const getToken = () => localStorage.getItem('token');
 // Headers por defecto
 const getHeaders = () => {
     const token = getToken();
-    return {
+    const headers = {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Token ${token}` })
     };
+    if (token) {
+        headers['Authorization'] = `Token ${token}`;
+    }
+    return headers;
 };
 
 // ============ AUTH ENDPOINTS ============
@@ -32,16 +35,28 @@ export const authAPI = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials)
         });
-        return response.json();
+        const data = await response.json();
+        
+        // Si el login es exitoso, guardar token inmediatamente
+        if (response.ok && data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        
+        return data;
     },
 
     // Logout
     logout: async () => {
-        const response = await fetch(`${API_BASE_URL}/api/logout/`, {
-            method: 'POST',
-            headers: getHeaders()
-        });
-        return response.json();
+        const token = getToken();
+        if (token) {
+            await fetch(`${API_BASE_URL}/api/logout/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Token ${token}` }
+            });
+        }
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
     },
 
     // Verificar contraseña (para acciones protegidas)
@@ -62,11 +77,10 @@ export const diagnosticoAPI = {
         const formData = new FormData();
         formData.append('image', imageFile);
 
+        const token = getToken();
         const response = await fetch(`${API_BASE_URL}/api/predict/`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Token ${getToken()}`
-            },
+            headers: token ? { 'Authorization': `Token ${token}` } : {},
             body: formData
         });
         return response.json();
@@ -125,8 +139,24 @@ export const landingAPI = {
     }
 };
 
+// ============ FUNCIÓN PARA VERIFICAR SI EL TOKEN ES VÁLIDO ============
+export const verifyToken = async () => {
+    const token = getToken();
+    if (!token) return false;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/diagnosticos/`, {
+            headers: { 'Authorization': `Token ${token}` }
+        });
+        return response.status !== 401;
+    } catch (error) {
+        return false;
+    }
+};
+
 export default {
     authAPI,
     diagnosticoAPI,
-    landingAPI
+    landingAPI,
+    verifyToken
 };

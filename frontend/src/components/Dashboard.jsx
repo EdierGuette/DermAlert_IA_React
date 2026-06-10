@@ -14,9 +14,9 @@ function Dashboard() {
   const [activeView, setActiveView] = useState('home');
   const [user, setUser] = useState(null);
   const [hasDiagnostics, setHasDiagnostics] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Log de montaje/desmontaje
   useEffect(() => {
     errorCapture.logAction('Dashboard', 'MOUNT', 'Dashboard montado');
     return () => {
@@ -24,57 +24,16 @@ function Dashboard() {
     };
   }, []);
 
-  // 🔥 EXPONER la función para cambiar vista (para que Resultados.jsx la use)
   window.changeView = (view) => {
     errorCapture.logAction('Dashboard', 'CHANGE_VIEW_EXTERNAL', `Cambio de vista externo a: ${view}`);
     setActiveView(view);
   };
 
-  useEffect(() => {
-    errorCapture.logAction('Dashboard', 'INIT', 'Inicializando Dashboard');
-    
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    errorCapture.logAction('Dashboard', 'AUTH_CHECK', 'Verificando autenticación', {
-      hasToken: !!token,
-      hasUserData: !!userData
-    });
-    
-    if (!token || !userData) {
-      errorCapture.logWarning('Dashboard', 'AUTH_FAILED', 'No hay token o userData, redirigiendo a login');
-      navigate('/login');
-      return;
-    }
-    
-    try {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      errorCapture.logAction('Dashboard', 'USER_SET', 'Usuario cargado correctamente', {
-        usuario_id: parsedUser.id,
-        identificacion: parsedUser.identificacion,
-        rol: parsedUser.rol,
-        nombre: `${parsedUser.first_name} ${parsedUser.last_name}`
-      });
-    } catch (e) {
-      errorCapture.logError('Dashboard', 'PARSE_USER_ERROR', 'Error al parsear userData', {
-        error: e.message,
-        userData: userData
-      });
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      navigate('/login');
-    }
-    
-    checkDiagnostics();
-    checkDiagnosticCookie();
-  }, [navigate]);
-
   const checkDiagnostics = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       errorCapture.logWarning('Dashboard', 'CHECK_DIAGNOSTICS', 'No hay token para verificar diagnósticos');
-      return;
+      return false;
     }
     
     errorCapture.logAction('Dashboard', 'CHECK_DIAGNOSTICS_START', 'Verificando existencia de diagnósticos');
@@ -82,7 +41,10 @@ function Dashboard() {
     
     try {
       const response = await fetch('/api/diagnosticos/', {
-        headers: { 'Authorization': `Token ${token}` }
+        headers: { 
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       const duration = Date.now() - startTime;
@@ -97,28 +59,30 @@ function Dashboard() {
           tiene_diagnosticos: hasDiag,
           duration_ms: duration
         });
+        return hasDiag;
       } else if (response.status === 401) {
-        errorCapture.logWarning('Dashboard', 'SESSION_EXPIRED', 'Sesión expirada al verificar diagnósticos');
-        handleSessionExpired();
+        errorCapture.logWarning('Dashboard', 'TOKEN_INVALID', 'Token inválido o expirado');
+        return false;
       }
     } catch (error) {
       errorCapture.logError('Dashboard', 'CHECK_DIAGNOSTICS_ERROR', 'Error al verificar diagnósticos', {
-        error_message: error.message,
-        error_stack: error.stack
+        error_message: error.message
       });
     }
+    return false;
   };
   
   const handleSessionExpired = () => {
     errorCapture.logAction('Dashboard', 'SESSION_EXPIRED', 'Manejando sesión expirada');
-    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     Swal.fire({
       icon: 'warning',
       title: 'Sesión expirada',
       text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-      confirmButtonColor: '#2f7a7a'
+      confirmButtonColor: '#2f7a7a',
+      timer: 2000,
+      showConfirmButton: false
     }).then(() => {
       errorCapture.logAction('Dashboard', 'REDIRECT_LOGIN', 'Redirigiendo a login por sesión expirada');
       navigate('/login');
@@ -169,22 +133,16 @@ function Dashboard() {
       errorCapture.logAction('Dashboard', 'LOGOUT_CONFIRMED', 'Usuario confirmó cierre de sesión');
       
       const token = localStorage.getItem('token');
-      const startTime = Date.now();
       
       try {
-        await fetch('/api/logout/', {
-          method: 'POST',
-          headers: { 'Authorization': `Token ${token}` }
-        });
-        
-        const duration = Date.now() - startTime;
-        errorCapture.logAction('Dashboard', 'LOGOUT_API_SUCCESS', 'API de logout exitosa', {
-          duration_ms: duration
-        });
+        if (token) {
+          await fetch('/api/logout/', {
+            method: 'POST',
+            headers: { 'Authorization': `Token ${token}` }
+          });
+        }
       } catch (error) {
-        errorCapture.logError('Dashboard', 'LOGOUT_API_ERROR', 'Error en API de logout', {
-          error_message: error.message
-        });
+        errorCapture.logError('Dashboard', 'LOGOUT_API_ERROR', 'Error en API de logout');
       }
       
       localStorage.removeItem('token');
@@ -202,8 +160,6 @@ function Dashboard() {
       });
       
       navigate('/');
-    } else {
-      errorCapture.logAction('Dashboard', 'LOGOUT_CANCELLED', 'Usuario canceló cierre de sesión');
     }
   };
   
@@ -224,20 +180,11 @@ function Dashboard() {
     });
   };
   
-  // 🔧 FUNCIÓN CORREGIDA
   const handleViewChange = (view) => {
-    errorCapture.logAction('Dashboard', 'NAVIGATION', `Cambiando vista de ${activeView} a ${view}`, {
-      from_view: activeView,
-      to_view: view,
-      has_diagnostics: hasDiagnostics
-    });
+    errorCapture.logAction('Dashboard', 'NAVIGATION', `Cambiando vista de ${activeView} a ${view}`);
     
     if (view === 'results' && !hasDiagnostics) {
-      errorCapture.logWarning('Dashboard', 'RESULTS_BLOCKED', 'Bloqueado acceso a resultados sin diagnósticos', {
-        from_view: activeView,
-        to_view: view,
-        has_diagnostics: hasDiagnostics
-      });
+      errorCapture.logWarning('Dashboard', 'RESULTS_BLOCKED', 'Bloqueado acceso a resultados sin diagnósticos');
       showNoResultsAlert();
       return;
     }
@@ -257,10 +204,93 @@ function Dashboard() {
       timer: 3000
     });
   };
+
+  // Efecto principal
+  useEffect(() => {
+    const initDashboard = async () => {
+      errorCapture.logAction('Dashboard', 'INIT', 'Inicializando Dashboard');
+      
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      errorCapture.logAction('Dashboard', 'AUTH_CHECK', 'Verificando autenticación', {
+        hasToken: !!token,
+        hasUserData: !!userData
+      });
+      
+      if (!token || !userData) {
+        errorCapture.logWarning('Dashboard', 'AUTH_FAILED', 'No hay token o userData');
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        errorCapture.logAction('Dashboard', 'USER_SET', 'Usuario cargado correctamente', {
+          usuario_id: parsedUser.id,
+          identificacion: parsedUser.identificacion,
+          rol: parsedUser.rol
+        });
+        
+        await checkDiagnostics();
+        setIsLoading(false);
+        
+      } catch (e) {
+        errorCapture.logError('Dashboard', 'PARSE_USER_ERROR', 'Error al parsear userData', {
+          error: e.message
+        });
+        setIsLoading(false);
+      }
+      
+      checkDiagnosticCookie();
+    };
+    
+    initDashboard();
+  }, []);
+
+  // Si no hay usuario después de cargar, redirigir a login
+  useEffect(() => {
+    if (!isLoading && !user) {
+      errorCapture.logAction('Dashboard', 'NO_USER_REDIRECT', 'No hay usuario, redirigiendo a login');
+      navigate('/login');
+    }
+  }, [isLoading, user, navigate]);
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontFamily: 'sans-serif',
+        color: '#2f7a7a'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid #eef6f5',
+            borderTop: '4px solid #2f7a7a',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <p>Cargando dashboard...</p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
   
   if (!user) {
-    errorCapture.logAction('Dashboard', 'LOADING', 'Mostrando pantalla de carga mientras se carga usuario');
-    return <div className="loading-container">Cargando...</div>;
+    return null;
   }
   
   return (
