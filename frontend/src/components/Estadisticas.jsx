@@ -354,8 +354,15 @@ function Estadisticas() {
     return (
         <section className="estadisticas" id="estadisticas">
             <div className="estadisticas-container">
-                <h2 className="estadisticas-title">📊 Estadísticas en tiempo real</h2>
-                <p className="estadisticas-subtitle">Datos actualizados de nuestra comunidad y el uso de la IA</p>
+                {/* Título con icono vectorial */}
+                <h2 className="estadisticas-title">
+                    <ion-icon name="bar-chart-outline" style={{ fontSize: '48px', marginRight: '15px', verticalAlign: 'middle', color: '#2f7a7a' }}></ion-icon>
+                    Estadísticas en tiempo real
+                </h2>
+                <p className="estadisticas-subtitle">
+                    <ion-icon name="people-outline" style={{ fontSize: '18px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                    Datos actualizados de nuestra comunidad y el uso de la IA
+                </p>
 
                 {/* Tarjetas con círculos animados */}
                 <div className="stats-cards">
@@ -363,28 +370,40 @@ function Estadisticas() {
                         <div className="circle-container">
                             <div className="circle" id="usuariosHoyCircle">0</div>
                         </div>
-                        <h3>Usuarios hoy</h3>
+                        <h3>
+                            <ion-icon name="person-add-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Usuarios hoy
+                        </h3>
                         <p>Nuevos registros en las últimas 24h</p>
                     </div>
                     <div className="stat-card">
                         <div className="circle-container">
                             <div className="circle" id="usuariosMesCircle">0</div>
                         </div>
-                        <h3>Usuarios este mes</h3>
+                        <h3>
+                            <ion-icon name="calendar-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Usuarios este mes
+                        </h3>
                         <p>Registros durante el mes actual</p>
                     </div>
                     <div className="stat-card">
                         <div className="circle-container">
                             <div className="circle" id="consultasHoyCircle">0</div>
                         </div>
-                        <h3>Consultas a la IA hoy</h3>
+                        <h3>
+                            <ion-icon name="analytics-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Consultas a la IA hoy
+                        </h3>
                         <p>Diagnósticos realizados en el día</p>
                     </div>
                     <div className="stat-card">
                         <div className="circle-container">
                             <div className="circle" id="consultasTotalesCircle">0</div>
                         </div>
-                        <h3>Consultas totales</h3>
+                        <h3>
+                            <ion-icon name="folder-open-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Consultas totales
+                        </h3>
                         <p>Histórico de diagnósticos realizados</p>
                     </div>
                 </div>
@@ -392,11 +411,17 @@ function Estadisticas() {
                 {/* Gráficas principales */}
                 <div className="charts-row">
                     <div className="chart-wrapper">
-                        <h3>📈 Usuarios por día (última semana)</h3>
+                        <h3>
+                            <ion-icon name="trending-up-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Usuarios por día (última semana)
+                        </h3>
                         <canvas id="usuariosLineChart" width="400" height="250"></canvas>
                     </div>
                     <div className="chart-wrapper">
-                        <h3>🥧 Distribución de diagnósticos (último mes)</h3>
+                        <h3>
+                            <ion-icon name="pie-chart-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Distribución de diagnósticos (último mes)
+                        </h3>
                         <canvas id="distribucionPieChart" width="400" height="250"></canvas>
                     </div>
                 </div>
@@ -404,13 +429,19 @@ function Estadisticas() {
                 {/* Top ubicaciones */}
                 <div className="top-locations">
                     <div className="top-departamentos">
-                        <h3>🏛️ Departamentos con más registros</h3>
+                        <h3>
+                            <ion-icon name="business-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Departamentos con más registros
+                        </h3>
                         <div id="departamentos-list" className="top-list">
                             <p className="loading-msg">Cargando datos...</p>
                         </div>
                     </div>
                     <div className="top-ciudades">
-                        <h3>🏙️ Ciudades con más registros</h3>
+                        <h3>
+                            <ion-icon name="location-outline" style={{ fontSize: '22px', marginRight: '8px', verticalAlign: 'middle' }}></ion-icon>
+                            Ciudades con más registros
+                        </h3>
                         <div id="ciudades-list" className="top-list">
                             <p className="loading-msg">Cargando datos...</p>
                         </div>
