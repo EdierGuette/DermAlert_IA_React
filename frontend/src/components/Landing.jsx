@@ -31,7 +31,7 @@ function Landing() {
             project_name: projectName,
             app_version: appVersion
         });
-        
+
         // Inicializar Swiper
         errorCapture.logAction('Landing', 'SWIPER_INIT', 'Inicializando Swiper');
         const swiper = new Swiper('.medicalSwiper', {
@@ -53,8 +53,8 @@ function Landing() {
 
         // Smooth scroll para enlaces internos
         errorCapture.logAction('Landing', 'SMOOTH_SCROLL_SETUP', 'Configurando smooth scroll para enlaces internos');
-        
-        const smoothScrollHandler = function(e) {
+
+        const smoothScrollHandler = function (e) {
             e.preventDefault();
             const href = this.getAttribute('href');
             if (href === '#') return;
@@ -79,7 +79,7 @@ function Landing() {
 
         // Animación de entrada para elementos al hacer scroll
         errorCapture.logAction('Landing', 'INTERSECTION_OBSERVER_SETUP', 'Configurando IntersectionObserver para animaciones');
-        
+
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -97,7 +97,7 @@ function Landing() {
 
         const animatedElements = document.querySelectorAll('.feature-card, .hero-left, .hero-right');
         errorCapture.logAction('Landing', 'ANIMATED_ELEMENTS_FOUND', `Elementos a animar encontrados: ${animatedElements.length}`);
-        
+
         animatedElements.forEach(el => {
             if (el) {
                 el.style.opacity = '0';
@@ -146,7 +146,7 @@ function Landing() {
             project_name: projectName,
             app_version: appVersion
         });
-        
+
         // Registrar tiempo de carga de la página
         const loadTime = window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart;
         errorCapture.logAction('Landing', 'PAGE_LOAD_TIME', `Tiempo de carga: ${loadTime}ms`, {
@@ -181,45 +181,45 @@ function Landing() {
                     </div>
 
                     <nav className="nav-menu">
-                        <a 
-                            href="#inicio" 
+                        <a
+                            href="#inicio"
                             className="nav-link"
                             onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Inicio')}
                         >
                             Inicio
                         </a>
-                        <a 
-                            href="#estadisticas" 
+                        <a
+                            href="#estadisticas"
                             className="nav-link"
                             onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Estadísticas')}
                         >
                             Estadísticas
                         </a>
-                        <a 
-                            href="#caracteristicas" 
+                        <a
+                            href="#caracteristicas"
                             className="nav-link"
                             onClick={() => errorCapture.logAction('Landing', 'NAV_CLICK', 'Navegación a Características')}
                         >
                             Características
                         </a>
-                        <a 
-                            href="#" 
-                            className="nav-link" 
+                        <a
+                            href="#"
+                            className="nav-link"
                             id="abrirContacto"
                             onClick={() => errorCapture.logAction('Landing', 'CONTACT_CLICK', 'Click en Contáctanos')}
                         >
                             Contáctanos
                         </a>
                         <div className="nav-buttons">
-                            <Link 
-                                to="/login" 
+                            <Link
+                                to="/login"
                                 className="btn btn-outline"
                                 onClick={() => errorCapture.logAction('Landing', 'LOGIN_CLICK', 'Click en Iniciar Sesión')}
                             >
                                 Iniciar Sesión
                             </Link>
-                            <Link 
-                                to="/register" 
+                            <Link
+                                to="/register"
                                 className="btn btn-primary"
                                 onClick={() => errorCapture.logAction('Landing', 'REGISTER_CLICK', 'Click en Registrarse')}
                             >
@@ -238,8 +238,8 @@ function Landing() {
                             <div className="swiper medicalSwiper">
                                 <div className="swiper-wrapper">
                                     {slides.map((slide, index) => (
-                                        <div 
-                                            key={index} 
+                                        <div
+                                            key={index}
                                             className="swiper-slide"
                                             onClick={() => errorCapture.logAction('Landing', 'SLIDE_CLICK', `Slide ${index + 1} clickeado`, {
                                                 slide: index + 1,
@@ -270,16 +270,16 @@ function Landing() {
                                 de forma rápida, segura y gratuita. Obtén resultados al instante.
                             </p>
                             <div className="hero-buttons">
-                                <Link 
-                                    to="/register" 
+                                <Link
+                                    to="/register"
                                     className="btn btn-primary"
                                     onClick={() => errorCapture.logAction('Landing', 'HERO_BUTTON_CLICK', 'Click en Comenzar ahora')}
                                 >
                                     Comenzar ahora
                                 </Link>
-                                <a 
-                                    href="#" 
-                                    className="btn btn-secondary" 
+                                <a
+                                    href="#"
+                                    className="btn btn-secondary"
                                     id="abrirContacto2"
                                     onClick={() => errorCapture.logAction('Landing', 'HERO_BUTTON_CLICK', 'Click en Hablar con experto')}
                                 >
@@ -328,8 +328,8 @@ function Landing() {
 
                     <div className="features-grid">
                         {features.map((feature, index) => (
-                            <div 
-                                key={index} 
+                            <div
+                                key={index}
                                 className="feature-card"
                                 onClick={() => errorCapture.logAction('Landing', 'FEATURE_CLICK', `Característica clickeada: ${feature.title}`, {
                                     feature: feature.title,
@@ -350,12 +350,14 @@ function Landing() {
             {/* MODAL DE CONTACTO */}
             <ContactModal />
 
-            {/* FOOTER */}
+            {/* FOOTER - CON ICONO CUADRADO MEJORADO */}
             <footer className="footer">
                 <div className="footer-content">
                     <div className="footer-logo">
-                        <ion-icon name={logoIcon}></ion-icon>
-                        <span>{projectName}</span>
+                        <div className="footer-logo-icon">
+                            <ion-icon name={logoIcon}></ion-icon>
+                        </div>
+                        <div className="footer-logo-text">{projectName}</div>
                     </div>
                     <div className="footer-copyright">
                         © 2025 {projectName} v{appVersion}. Todos los derechos reservados.

@@ -11,18 +11,19 @@
   --sans: "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-/* * {
-  box-sizing: border-box;
+/* RESET COMPLETO PARA OCUPAR TODO EL ANCHO */
+* {
   margin: 0;
   padding: 0;
-  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
-} */
+  box-sizing: border-box;
+}
 
-/* ========== PREVENIR SCROLL HORIZONTAL EN TODA LA PÁGINA ========== */
-html, body {
-  overflow-x: hidden;
+html, body, #root {
   width: 100%;
-  position: relative;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -30,13 +31,16 @@ body {
   background: linear-gradient(135deg, var(--bg), #eef3f2);
   color: #234;
   min-height: 100vh;
-  margin: 0;
+  width: 100%;
 }
 
 /* Contenedor principal de la aplicación */
 .app {
-  overflow-x: hidden;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  display: flex;
+  min-height: 100vh;
 }
 
 .hidden {
@@ -45,8 +49,9 @@ body {
 
 /* Scroll personalizado para el main */
 .main {
-  overflow-x: hidden;
+  flex: 1;
   width: 100%;
+  overflow-x: hidden;
   padding: 28px;
 }
 
@@ -66,6 +71,12 @@ body {
 
 .main::-webkit-scrollbar-thumb:hover {
   background: var(--accent-2);
+}
+
+/* Asegurar que las vistas ocupen todo el ancho */
+.view {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* ========== RESPONSIVE ========== */

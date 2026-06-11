@@ -467,16 +467,41 @@ body {
     gap: 20px;
 }
 
+/* ============================================
+   ESTILOS MEJORADOS PARA EL FOOTER 
+   CON ICONO CUADRADO (IGUAL QUE EL LOGO)
+   ============================================ */
+
 .footer-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    font-weight: 700;
+    gap: 12px;
 }
 
-.footer-logo span {
-    opacity: 0.9;
+.footer-logo-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    transform: rotate(-3deg);
+    transition: transform 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.footer-logo-icon:hover {
+    transform: rotate(0deg) scale(1.1);
+}
+
+.footer-logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.5px;
 }
 
 .footer-copyright {
@@ -494,4 +519,31 @@ body {
 
 .footer-contact ion-icon {
     font-size: 18px;
+}
+
+/* Responsive para móviles */
+@media (max-width: 600px) {
+    .footer-logo-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+    }
+    .footer-logo-text {
+        font-size: 18px;
+    }
+    .footer-logo {
+        gap: 8px;
+    }
+}
+
+/* Responsive para tablets */
+@media (min-width: 601px) and (max-width: 900px) {
+    .footer-logo-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+    }
+    .footer-logo-text {
+        font-size: 19px;
+    }
 }
