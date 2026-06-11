@@ -18,6 +18,8 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
     const [result, setResult] = useState(null);
     const [showCamera, setShowCamera] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [showLoadingModal, setShowLoadingModal] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('');
 
     const fileInputRef = useRef(null);
     const dropZoneRef = useRef(null);
@@ -69,6 +71,17 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
             probChart.current.destroy();
             initializeEmptyChart();
         }
+    };
+
+    // Función para mostrar modal de carga
+    const mostrarModalCarga = (mensaje) => {
+        setLoadingMessage(mensaje);
+        setShowLoadingModal(true);
+    };
+
+    const ocultarModalCarga = () => {
+        setShowLoadingModal(false);
+        setLoadingMessage('');
     };
 
     // Agrupar probabilidades de 9 clases en 4 categorías
@@ -270,10 +283,10 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
         }
 
         setResult(data);
-
-        // 🔥 DISPARAR EVENTO PARA ACTUALIZAR HISTORIAL Y RESULTADOS
-        window.dispatchEvent(new CustomEvent('diagnosticoCompletado', {
-            detail: { diagnostico: data, timestamp: Date.now() }
+        
+        // Disparar evento para actualizar historial y resultados
+        window.dispatchEvent(new CustomEvent('diagnosticoCompletado', { 
+            detail: { diagnostico: data, timestamp: Date.now() } 
         }));
         errorCapture.logAction('Diagnostico', 'EVENT_DISPATCHED', 'Evento diagnosticoCompletado disparado');
     };
@@ -380,6 +393,9 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
             file_size: currentFile.size
         });
 
+        // Mostrar modal de carga
+        mostrarModalCarga('Analizando imagen...');
+
         setAnalyzing(true);
         const token = localStorage.getItem('token');
         const startTime = Date.now();
@@ -396,6 +412,9 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
 
             const duration = Date.now() - startTime;
             const data = await response.json();
+
+            // Ocultar modal de carga
+            ocultarModalCarga();
 
             if (response.ok) {
                 errorCapture.logAction('Diagnostico', 'PREDICT_SUCCESS', 'Análisis completado exitosamente', {
@@ -421,6 +440,9 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                 });
             }
         } catch (error) {
+            // Ocultar modal de carga
+            ocultarModalCarga();
+            
             errorCapture.logError('Diagnostico', 'PREDICT_ERROR', 'Error de conexión en análisis', {
                 error_message: error.message,
                 error_stack: error.stack
@@ -471,6 +493,58 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
 
     return (
         <section className="view" id="diagnose">
+            {/* Modal de carga personalizado */}
+            {showLoadingModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 99999,
+                    backdropFilter: 'blur(5px)'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '16px',
+                        padding: '30px 40px',
+                        textAlign: 'center',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                        minWidth: '300px'
+                    }}>
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            border: '4px solid #eef6f5',
+                            borderTop: '4px solid #2f7a7a',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                            margin: '0 auto 20px'
+                        }}></div>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#2f7a7a',
+                            fontWeight: '600',
+                            marginBottom: '10px'
+                        }}>Procesando imagen</p>
+                        <p style={{
+                            fontSize: '13px',
+                            color: '#556'
+                        }}>{loadingMessage}</p>
+                        <style>{`
+                            @keyframes spin {
+                                0% { transform: rotate(0deg); }
+                                100% { transform: rotate(360deg); }
+                            }
+                        `}</style>
+                    </div>
+                </div>
+            )}
+
             <h2>Hacer diagnóstico</h2>
             <div className="upload-panel">
                 <div className="drop-zone-container">
@@ -512,6 +586,7 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                             id="btnTakePhoto"
                             className="primary take-photo-btn"
                             onClick={handleTakePhoto}
+                            disabled={analyzing}
                         >
                             <ion-icon name="camera-outline"></ion-icon>
                             <span>Tomar Foto</span>
@@ -528,7 +603,7 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
                         <button
                             id="btnDelete"
                             className="secondary delete-btn"
-                            disabled={!currentFile}
+                            disabled={!currentFile || analyzing}
                             onClick={handleDeleteImage}
                         >
                             <ion-icon name="trash-outline"></ion-icon>
