@@ -95,9 +95,9 @@ function Sidebar({ user, activeView, onViewChange, onLogout }) {
             </nav>
 
             <div className="logout-container">
-                <button 
-                    className="menu-btn logout-btn" 
-                    id="logoutBtn" 
+                <button
+                    className="menu-btn logout-btn"
+                    id="logoutBtn"
                     onClick={handleLogout}
                     onMouseEnter={() => errorCapture.logAction('Sidebar', 'LOGOUT_HOVER', 'Hover en botón de cerrar sesión')}
                 >

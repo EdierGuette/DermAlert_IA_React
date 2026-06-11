@@ -1,11 +1,14 @@
 /* styles/dashboard.css - Versión con botones horizontales en móvil */
+
+/* Contenedor principal - altura fija de la pantalla */
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
-/* Sidebar */
+/* Sidebar - altura fija y sin scroll */
 .sidebar {
   width: 260px;
   background: linear-gradient(180deg, var(--card), #f7fbfb);
@@ -14,14 +17,28 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   flex-shrink: 0;
+}
+
+/* Ocultar scrollbar del sidebar en desktop (opcional) */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: var(--soft);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
 }
 
 /* ============================================
    ESTILOS PARA EL BRAND DEL SIDEBAR 
-   (MISMO ESTILO QUE LOGIN/REGISTER)
    ============================================ */
 
 .sidebar .brand {
@@ -48,6 +65,7 @@
   transform: rotate(-5deg);
   transition: transform 0.3s ease;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar .brand-logo:hover {
@@ -61,6 +79,7 @@
   letter-spacing: 0.5px;
 }
 
+/* Menú - crece para ocupar espacio */
 .menu {
   display: flex;
   flex-direction: column;
@@ -148,7 +167,7 @@
   white-space: nowrap;
 }
 
-/* Contenedor de logout */
+/* Contenedor de logout - se pega al fondo del sidebar */
 .logout-container {
   margin-top: auto;
   padding-top: 20px;
@@ -217,34 +236,44 @@
   transform: scale(1.05);
 }
 
-/* Main */
+/* MAIN - solo esto hace scroll */
 .main {
   flex: 1;
   padding: 28px;
-  overflow: auto;
+  overflow-y: auto;
   background: var(--bg);
-  min-height: 100vh;
+  height: 100vh;
 }
+
 .view {
   background: transparent;
   padding: 6px 0;
   width: 100%;
-  min-height: 100%;
 }
 
 /* ========== RESPONSIVE ========== */
 
-/* Tablets (601px - 900px) - Botones con texto, logout solo icono */
+/* Tablets (601px - 900px) */
 @media (min-width: 601px) and (max-width: 900px) {
+  .app {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
   .sidebar {
     width: 100%;
+    height: auto;
     min-height: auto;
     flex-direction: row;
     padding: 10px 15px;
     overflow-x: auto;
+    overflow-y: hidden;
     gap: 8px;
     box-shadow: none;
     border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   
   .sidebar .brand {
@@ -275,7 +304,6 @@
     width: auto;
   }
   
-  /* Botones normales del menú (con texto) */
   .menu-btn:not(.logout-btn) {
     padding: 8px 12px;
     height: 48px;
@@ -316,7 +344,6 @@
     margin: 0;
   }
   
-  /* Texto visible solo en botones normales */
   .menu-btn:not(.logout-btn) span:not(.menu-icon) {
     display: inline-block;
     font-size: 13px;
@@ -327,12 +354,10 @@
   }
   
   .logout-container {
-    position: static;
     margin-top: 0;
     padding-top: 0;
   }
   
-  /* Botón de logout - SOLO ICONO en tablets */
   .logout-btn {
     padding: 8px !important;
     height: 48px !important;
@@ -366,28 +391,40 @@
     margin: 0 !important;
   }
   
-  /* Ocultar el texto del logout en tablets */
   .logout-btn span:not(.logout-icon) {
     display: none !important;
   }
   
   .main {
     padding: 20px;
+    height: auto;
+    min-height: calc(100vh - 80px);
+    overflow-y: auto;
   }
 }
 
 
-/* Móviles (hasta 600px) - SOLO ICONOS EN HORIZONTAL */
+/* Móviles (hasta 600px) */
 @media (max-width: 600px) {
+  .app {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
   .sidebar {
     width: 100%;
+    height: auto;
     min-height: auto;
     flex-direction: row;
     padding: 6px 10px;
     overflow-x: auto;
+    overflow-y: hidden;
     gap: 4px;
     box-shadow: none;
     border-bottom: 1px solid rgba(47, 122, 122, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   
   .sidebar .brand {
@@ -475,7 +512,6 @@
   }
   
   .logout-container {
-    position: static;
     margin-top: 0;
     padding-top: 0;
   }
@@ -524,5 +560,8 @@
   
   .main {
     padding: 12px;
+    height: auto;
+    min-height: calc(100vh - 70px);
+    overflow-y: auto;
   }
 }
