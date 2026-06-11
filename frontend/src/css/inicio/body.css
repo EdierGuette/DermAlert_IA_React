@@ -5,218 +5,838 @@
   min-height: 100%;
 }
 
-.lead {
-  color: #334;
-  opacity: 0.8;
-  margin-bottom: 20px;
-  font-size: 16px;
+/* ============================================
+   HERO BANNER MODERNO
+   ============================================ */
+
+.hero-banner {
+  background: linear-gradient(135deg, #2f7a7a 0%, #1e5f5f 100%);
+  border-radius: 20px;
+  padding: 30px 35px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(47, 122, 122, 0.2);
 }
 
-/* Warning Banner */
-.warning-banner {
-  background: #fff8e6;
-  border: 1px solid #ffd54f;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 20px 0;
+.hero-banner-content {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 20px;
 }
 
-.warning-icon {
-  font-size: 24px;
+.hero-banner-icon-square {
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transform: rotate(-5deg);
+  transition: transform 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hero-banner-icon-square:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.hero-title-modern {
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.hero-description-modern {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+/* ============================================
+   WARNING BANNER MODERNO
+   ============================================ */
+
+.warning-card {
+  background: linear-gradient(135deg, #fff8e6, #fff3cd);
+  border-left: 5px solid #ffc107;
+  border-radius: 16px;
+  padding: 20px 25px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.warning-icon-large {
+  font-size: 40px;
   flex-shrink: 0;
 }
 
-.warning-content {
-  flex: 1;
-}
-
-.warning-content strong {
-  color: #e65100;
-  display: block;
+.warning-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #856404;
   margin-bottom: 5px;
 }
 
 .warning-content p {
+  color: #856404;
+  font-size: 13px;
   margin: 0;
-  color: #666;
-  font-size: 14px;
 }
 
-/* Process Section */
-.process-section {
-  margin: 30px 0;
-}
+/* ============================================
+   SECTION TITLE
+   ============================================ */
 
-.process-section h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--accent);
-  font-size: 24px;
-}
-
-.process-steps {
+.section-title {
   display: flex;
-  gap: 20px;
-  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f7a7a;
+  margin-bottom: 30px;
 }
 
-.process-step {
-  flex: 1;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 25px;
+.section-title-icon {
+  font-size: 32px;
+}
+
+/* ============================================
+   PROCESS STEPS MODERNOS
+   ============================================ */
+
+.process-section-modern {
+  margin-bottom: 40px;
+}
+
+.process-steps-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.process-step-modern {
+  background: white;
+  border-radius: 20px;
+  padding: 30px 25px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
+  border-top: 4px solid;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.step-number {
+.process-step-modern:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(47, 122, 122, 0.15);
+}
+
+.step-number-modern {
   position: absolute;
   top: -15px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--accent);
-  color: white;
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 14px;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
 }
 
-.step-icon {
+.step-icon-modern {
   font-size: 48px;
-  margin-bottom: 15px;
+  margin: 15px 0 20px;
 }
 
-.process-step h3 {
-  color: var(--accent);
-  margin-bottom: 10px;
-  font-size: 18px;
+.process-step-modern h3 {
+  font-size: 20px;
+  color: #2f7a7a;
+  margin-bottom: 12px;
 }
 
-.process-step p {
-  color: var(--muted);
-  font-size: 14px;
+.process-step-modern p {
+  color: #556;
   line-height: 1.5;
-}
-
-.step-tips {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-  text-align: left;
-}
-
-.step-tips strong {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--muted);
   font-size: 14px;
 }
 
-.step-tips ul {
-  margin: 0;
-  padding-left: 15px;
-  font-size: 13px;
+/* ============================================
+   CARDS GRID MODERNAS
+   ============================================ */
+
+.cards-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
 }
 
-.step-tips li {
-  margin-bottom: 4px;
-  color: #666;
+.card-modern {
+  background: white !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Cards */
-.cards {
+.card-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(47, 122, 122, 0.12);
+}
+
+.card-header-modern {
+  background: linear-gradient(135deg, #f8fafc, #f0f5f4);
+  padding: 20px 25px;
   display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  width: 100%;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #eef6f5;
 }
 
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 6px 18px rgba(20, 30, 30, 0.04);
+.card-icon-large {
+  font-size: 32px;
+}
+
+.card-header-modern h3 {
+  font-size: 18px;
+  color: #2f7a7a;
+  margin: 0;
+}
+
+/* ============================================
+   PREVENTION LIST MEJORADA
+   ============================================ */
+
+.prevention-list-modern {
+  padding: 20px 25px;
+}
+
+.prevention-item-modern {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f5f4;
+}
+
+.prevention-item-modern:last-child {
+  border-bottom: none;
+}
+
+.prevention-icon {
+  font-size: 20px;
+}
+
+.prevention-content {
   flex: 1;
 }
 
-.card-header {
+.prevention-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: #234;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.prevention-detail {
+  font-size: 12px;
+  color: #7c8f8f;
+}
+
+/* ============================================
+   LESION TYPES - SIN NÚMEROS, COLORES IGUALES A GRÁFICA
+   ============================================ */
+
+.lesion-types-modern {
+  padding: 20px 25px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: transparent !important;
+}
+
+.lesion-item-modern {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f5f4;
+  border-left: 3px solid;
+  padding-left: 12px;
+  margin-bottom: 8px;
+  background: transparent !important;
+}
+
+.lesion-item-modern:last-child {
+  border-bottom: none;
+}
+
+.lesion-icon {
+  font-size: 20px;
+}
+
+.lesion-content {
+  flex: 1;
+}
+
+.lesion-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
-  border-bottom: 2px solid var(--soft);
-  padding-bottom: 10px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
 }
 
-.card-icon {
+.lesion-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #234;
+}
+
+.lesion-category {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.lesion-description {
+  font-size: 12px;
+  color: #556;
+  margin-bottom: 4px;
+}
+
+.lesion-recommendation {
+  font-size: 11px;
+  color: #2f7a7a;
+  font-style: italic;
+}
+
+/* ============================================
+   ABCDE CON ANIMACIONES
+   ============================================ */
+
+.abcde-list-modern {
+  padding: 20px 25px;
+}
+
+.abcde-item {
+  display: flex;
+  gap: 15px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f5f4;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.abcde-item:last-child {
+  border-bottom: none;
+}
+
+.abcde-letter {
+  width: 55px;
+  height: 55px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
   font-size: 24px;
+  color: white;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-.card-header h3 {
-  margin: 0;
-  color: var(--accent);
+.abcde-icon {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.abcde-content {
+  flex: 1;
+}
+
+.abcde-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #234;
+  margin-bottom: 4px;
+}
+
+.abcde-description {
+  font-size: 12px;
+  color: #556;
+}
+
+/* ============================================
+   CARD FOOTER
+   ============================================ */
+
+.card-footer-modern {
+  background: #f8fafc;
+  padding: 12px 25px;
+  font-size: 11px;
+  color: #2f7a7a;
+  text-align: center;
+  border-top: 1px solid #eef6f5;
+}
+
+/* ============================================
+   LIMITATIONS CARD MEJORADA
+   ============================================ */
+
+.limitations-card-modern {
+  background: white !important;
+  border-radius: 20px;
+  margin-bottom: 40px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.limitations-header {
+  background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+  padding: 20px 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+}
+
+.limitations-icon {
+  font-size: 32px;
+}
+
+.limitations-header h3 {
   font-size: 18px;
+  margin: 0;
+  color: white;
 }
 
-/* ========== RESPONSIVE ========== */
+.limitations-header p {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 5px 0 0;
+}
+
+.limitations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  padding: 25px;
+  background: transparent !important;
+}
+
+.limitation-item-modern {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  background: #f8fafc !important;
+  border-radius: 12px;
+  border-left: 3px solid;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.limitation-item-modern:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.limitation-icon-modern {
+  font-size: 22px;
+}
+
+.limitation-text-modern {
+  font-size: 13px;
+  color: #556;
+  line-height: 1.4;
+}
+
+.limitations-footer {
+  background: #f8fafc;
+  padding: 12px 25px;
+  font-size: 11px;
+  color: #556;
+  text-align: center;
+  border-top: 1px solid #eef6f5;
+}
+
+/* ============================================
+   NEWS CARD MEJORADA
+   ============================================ */
+
+.news-card-modern {
+  background: white !important;
+  border-radius: 20px;
+  margin-bottom: 40px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.news-header {
+  background: linear-gradient(135deg, #2f7a7a, #1e5f5f);
+  padding: 20px 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+}
+
+.news-icon {
+  font-size: 32px;
+}
+
+.news-header h3 {
+  font-size: 18px;
+  margin: 0;
+  color: white;
+}
+
+.news-header p {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 5px 0 0;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 25px;
+  background: transparent !important;
+}
+
+.news-item-modern {
+  background: #f8fafc !important;
+  border-radius: 16px;
+  padding: 18px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.news-item-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(47, 122, 122, 0.1);
+}
+
+.news-title-modern {
+  font-weight: 700;
+  font-size: 15px;
+  color: #2f7a7a;
+  margin-bottom: 10px;
+}
+
+.news-description-modern {
+  font-size: 13px;
+  color: #556;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.news-footer-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.news-source {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2f7a7a;
+}
+
+.news-year {
+  font-size: 10px;
+  color: #999;
+  background: #eef6f5;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.news-footer-main {
+  background: #f8fafc;
+  padding: 12px 25px;
+  font-size: 11px;
+  color: #2f7a7a;
+  text-align: center;
+  border-top: 1px solid #eef6f5;
+}
+
+/* ============================================
+   FOOTER MODERN
+   ============================================ */
+
+.professional-footer-modern {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px 25px;
+  margin-top: 20px;
+}
+
+.footer-content-modern {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.footer-section {
+  font-size: 12px;
+  color: #556;
+}
+
+.footer-link-modern {
+  color: #2f7a7a;
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+.footer-link-modern:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
 @media (max-width: 900px) {
-  .cards {
+  .hero-banner-content {
     flex-direction: column;
+    text-align: center;
   }
-  .process-steps {
+  
+  .hero-title-modern {
+    font-size: 24px;
+  }
+  
+  .cards-grid-modern {
+    grid-template-columns: 1fr;
+  }
+  
+  .limitations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-content-modern {
     flex-direction: column;
+    text-align: center;
   }
-  .lead {
-    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .hero-banner {
+    padding: 20px 25px;
   }
-  .warning-banner {
-    padding: 12px;
+  
+  .hero-banner-icon-square {
+    width: 55px;
+    height: 55px;
+    font-size: 28px;
   }
-  .warning-icon {
-    font-size: 20px;
+  
+  .hero-title-modern {
+    font-size: 22px;
   }
-  .warning-content strong {
+  
+  .hero-description-modern {
     font-size: 14px;
   }
-  .warning-content p {
-    font-size: 13px;
+  
+  .section-title {
+    font-size: 22px;
+  }
+  
+  .process-steps-modern {
+    grid-template-columns: 1fr;
+  }
+  
+  .step-icon-modern {
+    font-size: 40px;
+  }
+  
+  .process-step-modern h3 {
+    font-size: 18px;
   }
 }
 
 @media (max-width: 600px) {
-  .process-step {
-    padding: 20px 15px;
+  .warning-card {
+    flex-direction: column;
+    text-align: center;
   }
-  .step-icon {
-    font-size: 36px;
+  
+  .warning-icon-large {
+    font-size: 32px;
   }
-  .process-step h3 {
-    font-size: 16px;
-  }
-  .process-step p,
-  .step-tips ul,
-  .step-tips li {
-    font-size: 12px;
-  }
-  .card {
-    padding: 15px;
-  }
-  .card-header h3 {
-    font-size: 16px;
-  }
-  .card-icon {
+  
+  .abcde-letter {
+    width: 45px;
+    height: 45px;
     font-size: 20px;
   }
-  .prevention-item span {
+  
+  .abcde-icon {
+    font-size: 12px;
+  }
+  
+  .abcde-title {
+    font-size: 14px;
+  }
+  
+  .abcde-description {
+    font-size: 11px;
+  }
+  
+  .lesion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .limitation-item-modern {
+    padding: 10px 12px;
+  }
+  
+  .limitation-icon-modern {
+    font-size: 18px;
+  }
+  
+  .limitation-text-modern {
+    font-size: 12px;
+  }
+  
+  .news-title-modern {
+    font-size: 14px;
+  }
+  
+  .news-description-modern {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner {
+    padding: 15px 20px;
+  }
+  
+  .hero-banner-icon-square {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+  }
+  
+  .hero-title-modern {
+    font-size: 18px;
+  }
+  
+  .hero-description-modern {
+    font-size: 12px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+  
+  .section-title-icon {
+    font-size: 24px;
+  }
+  
+  .card-header-modern {
+    padding: 15px 20px;
+  }
+  
+  .card-icon-large {
+    font-size: 24px;
+  }
+  
+  .card-header-modern h3 {
+    font-size: 16px;
+  }
+  
+  .prevention-list-modern,
+  .lesion-types-modern,
+  .abcde-list-modern {
+    padding: 15px 20px;
+  }
+  
+  .prevention-text {
     font-size: 13px;
+  }
+  
+  .prevention-detail {
+    font-size: 11px;
+  }
+  
+  .lesion-name {
+    font-size: 13px;
+  }
+  
+  .lesion-description {
+    font-size: 11px;
+  }
+  
+  .lesion-recommendation {
+    font-size: 10px;
+  }
+  
+  .abcde-item {
+    gap: 10px;
+    padding: 10px 0;
+  }
+  
+  .abcde-letter {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .abcde-icon {
+    font-size: 10px;
+  }
+  
+  .abcde-title {
+    font-size: 13px;
+  }
+  
+  .abcde-description {
+    font-size: 10px;
+  }
+  
+  .limitations-grid {
+    padding: 15px;
+    gap: 10px;
+  }
+  
+  .limitation-item-modern {
+    padding: 8px 10px;
+  }
+  
+  .news-grid {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .news-item-modern {
+    padding: 12px;
+  }
+  
+  .footer-section {
+    font-size: 11px;
   }
 }
