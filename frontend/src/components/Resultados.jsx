@@ -67,7 +67,6 @@ const getRecommendationText = (className, categoria) => {
   return recomendaciones[className] || `Resultado: ${className} (${categoria}). Consulta con un especialista para una evaluación más precisa.`;
 };
 
-// Agrupar probabilidades de 9 clases en 4 categorías
 const aggregateProbs = (probs) => {
   let benignoSum = 0, malignoSum = 0, premaligno = 0, desconocido = 0;
   for (let i = 0; i <= 3; i++) benignoSum += probs[i];
@@ -92,14 +91,13 @@ function Resultados() {
   const [loading, setLoading] = useState(true);
   const [classDistChart, setClassDistChart] = useState(null);
   const [confidenceLineChart, setConfidenceLineChart] = useState(null);
-  
+
   const classDistCanvasRef = useRef(null);
   const confidenceLineCanvasRef = useRef(null);
   const probChartCanvasRef = useRef(null);
   const specificClassesCanvasRef = useRef(null);
   const chartInstancesRef = useRef({ probChart: null, specificChart: null });
 
-  // Log de montaje/desmontaje
   useEffect(() => {
     errorCapture.logAction('Resultados', 'MOUNT', 'Componente Resultados montado');
     return () => {
@@ -110,7 +108,6 @@ function Resultados() {
     };
   }, []);
 
-  // Destruir gráficas existentes
   const destroyDiagnosticoCharts = () => {
     errorCapture.logAction('Resultados', 'DESTROY_CHARTS', 'Destruyendo gráficas de diagnóstico');
     if (chartInstancesRef.current.probChart) {
@@ -123,23 +120,22 @@ function Resultados() {
     }
   };
 
-  // Dibujar gráficas del diagnóstico seleccionado
   const drawDiagnosticoCharts = (diagnostico) => {
     errorCapture.logAction('Resultados', 'DRAW_CHARTS_START', 'Dibujando gráficas para diagnóstico', {
       diagnostico_id: diagnostico?.id
     });
-    
+
     if (!diagnostico) {
       errorCapture.logWarning('Resultados', 'DRAW_CHARTS_NO_DATA', 'No hay diagnóstico para dibujar gráficas');
       return;
     }
-    
+
     destroyDiagnosticoCharts();
-    
+
     const aggregated = aggregateProbs(diagnostico.probabilidades);
     const categories = ['Benigno', 'Maligno', 'Premaligno', 'Desconocido'];
     const categoryValues = [aggregated.Benigno, aggregated.Maligno, aggregated.Premaligno, aggregated.Desconocido];
-    
+
     errorCapture.logAction('Resultados', 'CHART_VALUES', 'Valores agregados para gráfica', {
       benigno: aggregated.Benigno,
       maligno: aggregated.Maligno,
@@ -147,7 +143,6 @@ function Resultados() {
       desconocido: aggregated.Desconocido
     });
 
-    // Gráfica de categorías
     if (probChartCanvasRef.current) {
       const ctx = probChartCanvasRef.current.getContext('2d');
       if (ctx) {
@@ -174,7 +169,6 @@ function Resultados() {
       }
     }
 
-    // Gráfica de clases específicas
     const classNames = [
       'Benigno General', 'Nevo Lunar', 'Dermatofibroma', 'Queratosis Seborreica',
       'Melanoma', 'Carcinoma Basocelular', 'Carcinoma Escamocelular',
@@ -220,7 +214,6 @@ function Resultados() {
     }
   };
 
-  // Mostrar diagnóstico específico (función pública llamada desde Historial)
   const showDiagnosticoInResults = useCallback((diagnostico) => {
     errorCapture.logAction('Resultados', 'SHOW_DIAGNOSTIC_START', 'Mostrando diagnóstico específico', {
       diagnostico_id: diagnostico.id,
@@ -228,19 +221,17 @@ function Resultados() {
       clase: diagnostico.clase,
       confianza: diagnostico.confianza
     });
-    
-    // Asegurar que la imagen tenga el formato correcto
+
     const diagnosticoConImagen = {
       ...diagnostico,
-      imagen: diagnostico.imagen?.startsWith('data:image') 
-        ? diagnostico.imagen 
+      imagen: diagnostico.imagen?.startsWith('data:image')
+        ? diagnostico.imagen
         : `data:image/jpeg;base64,${diagnostico.imagen}`
     };
-    
+
     errorCapture.logAction('Resultados', 'SELECT_DIAGNOSTIC', 'Actualizando estado selectedDiagnostico');
     setSelectedDiagnostico(diagnosticoConImagen);
-    
-    // Scroll al resultado después de que React actualice el DOM
+
     setTimeout(() => {
       errorCapture.logAction('Resultados', 'SCROLL_TO_RESULT', 'Realizando scroll al resultCard');
       const resultCard = document.getElementById('resultCard');
@@ -254,20 +245,17 @@ function Resultados() {
     }, 200);
   }, []);
 
-  // Limpiar diagnóstico seleccionado
   const clearSelectedDiagnostico = useCallback(() => {
     errorCapture.logAction('Resultados', 'CLEAR_SELECTED', 'Limpiando diagnóstico seleccionado');
     setSelectedDiagnostico(null);
     destroyDiagnosticoCharts();
   }, []);
 
-  // Recargar gráficas agregadas
   const reloadAggregatedCharts = useCallback(() => {
     errorCapture.logAction('Resultados', 'RELOAD_AGGREGATED', 'Recargando gráficas agregadas');
     drawAggregatedCharts();
   }, []);
 
-  // Dibujar gráficas agregadas (estadísticas generales)
   const drawAggregatedCharts = async () => {
     errorCapture.logAction('Resultados', 'AGGREGATED_CHARTS_START', 'Cargando gráficas agregadas');
     const token = localStorage.getItem('token');
@@ -292,7 +280,7 @@ function Resultados() {
         cantidad: data.length,
         duration_ms: duration
       });
-      
+
       setDiagnosticos(data);
       setLoading(false);
 
@@ -301,7 +289,6 @@ function Resultados() {
         return;
       }
 
-      // Destruir gráficas existentes
       if (classDistChart) {
         classDistChart.destroy();
       }
@@ -309,13 +296,12 @@ function Resultados() {
         confidenceLineChart.destroy();
       }
 
-      // Gráfica de distribución por categoría
       const counts = {};
       data.forEach(d => {
         const cat = d.categoria || 'Desconocido';
         counts[cat] = (counts[cat] || 0) + 1;
       });
-      
+
       errorCapture.logAction('Resultados', 'CATEGORY_DISTRIBUTION', 'Distribución por categoría', counts);
 
       const labels = Object.keys(counts);
@@ -370,19 +356,18 @@ function Resultados() {
         errorCapture.logAction('Resultados', 'PIE_CHART_DRAWN', 'Gráfica de pastel creada');
       }
 
-      // Gráfica de línea de confianza
       const sorted = [...data].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
       const timeline = sorted.map(d => {
         const date = new Date(d.fecha);
         return date.toLocaleDateString('es-CO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       });
       const confs = sorted.map(d => d.confianza);
-      
+
       errorCapture.logAction('Resultados', 'CONFIDENCE_TIMELINE', 'Timeline de confianza cargada', {
         points: timeline.length,
         min_confidence: Math.min(...confs),
         max_confidence: Math.max(...confs),
-        avg_confidence: confs.reduce((a,b) => a + b, 0) / confs.length
+        avg_confidence: confs.reduce((a, b) => a + b, 0) / confs.length
       });
 
       if (confidenceLineCanvasRef.current) {
@@ -430,28 +415,41 @@ function Resultados() {
     }
   };
 
-  // Registrar función global y evento
+  // 🔥 ESCUCHAR EVENTO DE DIAGNÓSTICO COMPLETADO
+  useEffect(() => {
+    const handleDiagnosticoCompletado = () => {
+      errorCapture.logAction('Resultados', 'DIAGNOSTICO_COMPLETADO', 'Diagnóstico completado, recargando gráficas');
+      drawAggregatedCharts();
+    };
+
+    window.addEventListener('diagnosticoCompletado', handleDiagnosticoCompletado);
+
+    return () => {
+      window.removeEventListener('diagnosticoCompletado', handleDiagnosticoCompletado);
+    };
+  }, []);
+
   useEffect(() => {
     errorCapture.logAction('Resultados', 'REGISTER_GLOBAL_FUNCTION', 'Registrando funciones globales');
-    
+
     window.showDiagnosticoInResults = showDiagnosticoInResults;
     window.clearSelectedDiagnostico = clearSelectedDiagnostico;
     window.reloadAggregatedCharts = reloadAggregatedCharts;
-    
+
     errorCapture.logAction('Resultados', 'FUNCTION_REGISTERED', 'Funciones registradas correctamente');
-    
-    const event = new CustomEvent('resultadosReady', { 
-      detail: { 
+
+    const event = new CustomEvent('resultadosReady', {
+      detail: {
         showDiagnosticoInResults,
         clearSelectedDiagnostico,
         reloadAggregatedCharts,
         timestamp: Date.now()
-      } 
+      }
     });
     window.dispatchEvent(event);
-    
+
     drawAggregatedCharts();
-    
+
     return () => {
       errorCapture.logAction('Resultados', 'CLEANUP', 'Limpiando recursos y función global');
       delete window.showDiagnosticoInResults;
@@ -526,10 +524,10 @@ function Resultados() {
               </div>
               <div className="imagen-container-result">
                 {selectedDiagnostico && selectedDiagnostico.imagen ? (
-                  <img 
-                    src={selectedDiagnostico.imagen} 
-                    alt="Imagen del diagnóstico" 
-                    className="imagen-preview-result" 
+                  <img
+                    src={selectedDiagnostico.imagen}
+                    alt="Imagen del diagnóstico"
+                    className="imagen-preview-result"
                     onError={(e) => {
                       errorCapture.logError('Resultados', 'IMAGE_LOAD_ERROR', 'Error cargando imagen');
                       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"%3E%3Crect x="2" y="2" width="20" height="20" rx="2.18"%3E%3C/rect%3E%3Cpath d="M8 2v20M16 2v20M2 8h20M2 16h20"%3E%3C/path%3E%3C/svg%3E';

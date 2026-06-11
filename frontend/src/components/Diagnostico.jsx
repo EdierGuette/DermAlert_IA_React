@@ -270,6 +270,12 @@ function Diagnostico({ onDiagnosisComplete, hasDiagnostics }) {
         }
 
         setResult(data);
+
+        // 🔥 DISPARAR EVENTO PARA ACTUALIZAR HISTORIAL Y RESULTADOS
+        window.dispatchEvent(new CustomEvent('diagnosticoCompletado', {
+            detail: { diagnostico: data, timestamp: Date.now() }
+        }));
+        errorCapture.logAction('Diagnostico', 'EVENT_DISPATCHED', 'Evento diagnosticoCompletado disparado');
     };
 
     const handleFiles = (files) => {
