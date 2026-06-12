@@ -122,7 +122,7 @@ function Resultados() {
 
   const drawDiagnosticoCharts = (diagnostico) => {
     errorCapture.logAction('Resultados', 'DRAW_CHARTS_START', 'Dibujando gráficas para diagnóstico', {
-      diagnostico_id: diagnostico?.id
+      diagnostico_id: diagnostico?.diagnostico_id
     });
 
     if (!diagnostico) {
@@ -216,7 +216,7 @@ function Resultados() {
 
   const showDiagnosticoInResults = useCallback((diagnostico) => {
     errorCapture.logAction('Resultados', 'SHOW_DIAGNOSTIC_START', 'Mostrando diagnóstico específico', {
-      diagnostico_id: diagnostico.id,
+      diagnostico_id: diagnostico.diagnostico_id,
       categoria: diagnostico.categoria,
       clase: diagnostico.clase,
       confianza: diagnostico.confianza
@@ -415,7 +415,7 @@ function Resultados() {
     }
   };
 
-  // 🔥 ESCUCHAR EVENTO DE DIAGNÓSTICO COMPLETADO
+  // ESCUCHAR EVENTO DE DIAGNÓSTICO COMPLETADO
   useEffect(() => {
     const handleDiagnosticoCompletado = () => {
       errorCapture.logAction('Resultados', 'DIAGNOSTICO_COMPLETADO', 'Diagnóstico completado, recargando gráficas');
@@ -482,9 +482,14 @@ function Resultados() {
           <div className="diagnostico-info-table">
             <table className="info-table">
               <tbody>
+                {/* ============================================ */}
+                {/* MODIFICACIÓN: Mostrar diagnostico_id en lugar de id */}
+                {/* ============================================ */}
                 <tr>
                   <td className="info-label">ID:</td>
-                  <td className="info-value">{selectedDiagnostico ? (selectedDiagnostico.displayId || selectedDiagnostico.id) : '—'}</td>
+                  <td className="info-value">
+                    {selectedDiagnostico ? (selectedDiagnostico.diagnostico_id || selectedDiagnostico.id) : '—'}
+                  </td>
                   <td className="info-label">Nombre completo:</td>
                   <td className="info-value">{selectedDiagnostico ? selectedDiagnostico.paciente_nombre || 'N/A' : '—'}</td>
                 </tr>

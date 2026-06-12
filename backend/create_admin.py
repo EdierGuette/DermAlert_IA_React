@@ -19,7 +19,10 @@ def create_admin_user():
                 telefono='3229282626',
                 sexo='masculino',
                 rol='administrador',
-                password='Edier123'
+                password='Edier123',
+                pais='Colombia',
+                departamento='Atlántico',
+                ciudad='Barranquilla'
             )
             print("✅ Usuario administrador creado exitosamente")
             print(f"   Identificación: 1003124316")

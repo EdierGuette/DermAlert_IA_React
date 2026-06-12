@@ -140,6 +140,10 @@ function Historial({ onViewChange }) {
     }
   }, []);
 
+  // ============================================
+  // MODIFICACIÓN: Función applyFilters actualizada
+  // Ahora usa diagnostico_id como identificador visible
+  // ============================================
   const applyFilters = (diagnosticos) => {
     errorCapture.logAction('Historial', 'APPLY_FILTERS_START', 'Aplicando filtros', {
       searchValue: searchValue || 'ninguno',
@@ -150,31 +154,35 @@ function Historial({ onViewChange }) {
 
     if (searchValue) {
       if (searchType === 'id') {
-        const total = diagnosticos.length;
-        filtered = diagnosticos.filter((_, idx) => {
-          const displayId = total - idx;
-          return displayId.toString() === searchValue;
+        // FILTRO POR EL NUEVO ID FORMATEADO (DA-XXXXXX)
+        filtered = diagnosticos.filter(d => 
+          d.diagnostico_id && d.diagnostico_id.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        errorCapture.logAction('Historial', 'FILTER_BY_ID', 'Filtrando por ID formateado', {
+          searchValue: searchValue,
+          encontrados: filtered.length
         });
       } else {
+        // Búsqueda por cédula
         filtered = diagnosticos.filter(d =>
           d.paciente_identificacion &&
           d.paciente_identificacion.toString().includes(searchValue)
         );
+        errorCapture.logAction('Historial', 'FILTER_BY_CEDULA', 'Filtrando por cédula', {
+          searchValue: searchValue,
+          encontrados: filtered.length
+        });
       }
-      errorCapture.logAction('Historial', 'FILTERS_RESULT', 'Resultado de filtros', {
-        original_count: diagnosticos.length,
-        filtered_count: filtered.length,
-        searchValue: searchValue,
-        searchType: searchType
-      });
     }
 
+    // Ordenar por fecha descendente (más reciente primero)
     filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-    const totalGlobal = diagnosticos.length;
+    // ============================================
+    // MODIFICACIÓN: Asignar displayId como diagnostico_id
+    // ============================================
     filtered.forEach(d => {
-      const originalIndex = diagnosticos.findIndex(od => od.id === d.id);
-      d.displayId = totalGlobal - originalIndex;
+      d.displayId = d.diagnostico_id || `ID-${d.id}`;
     });
 
     setFilteredDiagnosticos(filtered);
@@ -189,7 +197,7 @@ function Historial({ onViewChange }) {
     loadDiagnosticos();
   }, [loadDiagnosticos]);
 
-  // 🔥 ESCUCHAR EVENTO DE DIAGNÓSTICO COMPLETADO
+  // ESCUCHAR EVENTO DE DIAGNÓSTICO COMPLETADO
   useEffect(() => {
     const handleDiagnosticoCompletado = () => {
       errorCapture.logAction('Historial', 'DIAGNOSTICO_COMPLETADO', 'Diagnóstico completado, recargando historial');
@@ -254,7 +262,7 @@ function Historial({ onViewChange }) {
 
   const handleViewResults = (diagnostico) => {
     errorCapture.logAction('Historial', 'VIEW_RESULTS_CLICK', 'Usuario solicitó ver resultados', {
-      diagnostico_id: diagnostico.id,
+      diagnostico_id: diagnostico.diagnostico_id,
       categoria: diagnostico.categoria,
       clase: diagnostico.clase,
       confianza: diagnostico.confianza
@@ -266,7 +274,7 @@ function Historial({ onViewChange }) {
 
   const handleDeleteClick = (diagnostico) => {
     errorCapture.logAction('Historial', 'DELETE_CLICK', 'Usuario solicitó eliminar diagnóstico', {
-      diagnostico_id: diagnostico.id,
+      diagnostico_id: diagnostico.diagnostico_id,
       categoria: diagnostico.categoria,
       clase: diagnostico.clase
     });
@@ -278,7 +286,7 @@ function Historial({ onViewChange }) {
   const handleAuthSuccess = () => {
     errorCapture.logAction('Historial', 'AUTH_SUCCESS', 'Autenticación exitosa', {
       pendingAction: pendingAction,
-      diagnostico_id: pendingDiagnostico?.id,
+      diagnostico_id: pendingDiagnostico?.diagnostico_id,
       resultadosReady: resultadosReady
     });
 
@@ -291,7 +299,7 @@ function Historial({ onViewChange }) {
       };
 
       errorCapture.logAction('Historial', 'VIEW_RESULTS_AUTH', 'Mostrando resultados después de autenticación', {
-        diagnostico_id: pendingDiagnostico.id,
+        diagnostico_id: pendingDiagnostico.diagnostico_id,
         imagen_formateada: !!diagnosticoConImagen.imagen
       });
 
@@ -301,7 +309,7 @@ function Historial({ onViewChange }) {
       const mostrarResultados = () => {
         if (typeof window.showDiagnosticoInResults === 'function') {
           errorCapture.logAction('Historial', 'SHOW_RESULTS_SUCCESS', `Función encontrada en intento ${intentoActual + 1}`, {
-            diagnostico_id: pendingDiagnostico.id
+            diagnostico_id: pendingDiagnostico.diagnostico_id
           });
 
           setTimeout(() => {
@@ -325,7 +333,7 @@ function Historial({ onViewChange }) {
         } else {
           errorCapture.logError('Historial', 'SHOW_RESULTS_FAILED', 'No se pudo mostrar resultados después de múltiples intentos', {
             max_intentos: maxIntentos,
-            diagnostico_id: pendingDiagnostico.id
+            diagnostico_id: pendingDiagnostico.diagnostico_id
           });
           Swal.fire({
             icon: 'error',
@@ -340,7 +348,7 @@ function Historial({ onViewChange }) {
 
     } else if (pendingAction === 'delete' && pendingDiagnostico) {
       errorCapture.logAction('Historial', 'DELETE_AUTH', 'Ejecutando eliminación después de autenticación', {
-        diagnostico_id: pendingDiagnostico.id
+        diagnostico_id: pendingDiagnostico.diagnostico_id
       });
       deleteRecord(pendingDiagnostico.id, pendingDiagnostico.displayId);
     }
@@ -494,8 +502,8 @@ function Historial({ onViewChange }) {
             <div className="search-input-group">
               <input
                 id="historySearchInput"
-                placeholder={searchType === 'id' ? "Ingrese ID del examen" : "Ingrese número de cédula"}
-                type={searchType === 'id' ? "number" : "text"}
+                placeholder={searchType === 'id' ? "Ingrese ID (ej: DA-000001)" : "Ingrese número de cédula"}
+                type={searchType === 'id' ? "text" : "text"}
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
@@ -576,7 +584,10 @@ function Historial({ onViewChange }) {
 
                   return (
                     <tr key={diagnostico.id}>
-                      <td><strong>{diagnostico.displayId}</strong></td>
+                      {/* ============================================ */}
+                      {/* MODIFICACIÓN: Mostrar diagnostico_id como ID */}
+                      {/* ============================================ */}
+                      <td><strong>{diagnostico.diagnostico_id || diagnostico.displayId}</strong></td>
                       <td>{fecha}</td>
                       <td><span className={`badge ${categoryBadgeClass}`}>{diagnostico.categoria}</span></td>
                       <td><span className={`badge ${lesionBadgeClass}`}>{diagnostico.clase}</span></td>
@@ -586,7 +597,7 @@ function Historial({ onViewChange }) {
                         <span className="confidence-value" style={{ fontWeight: 600, color: getConfidenceColor(diagnostico.confianza) }}>
                           {diagnostico.confianza}%
                         </span>
-                      </td>
+                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <div className="actions-container" style={{ justifyContent: 'center' }}>
                           <button
@@ -604,7 +615,7 @@ function Historial({ onViewChange }) {
                             <span>Eliminar</span>
                           </button>
                         </div>
-                      </td>
+                       </td>
                     </tr>
                   );
                 })

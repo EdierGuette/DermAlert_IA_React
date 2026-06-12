@@ -57,7 +57,28 @@ class DiagnosticoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Diagnostico
-        fields = ('id', 'paciente', 'paciente_nombre', 'paciente_identificacion',
-                  'fecha', 'clase', 'categoria', 'confianza', 'probabilidades', 
-                  'imagen', 'codigo_cie10')
-        read_only_fields = ('id', 'fecha')
+        # ============================================
+        # SE AGREGA 'diagnostico_id' A LA LISTA DE CAMPOS
+        # ============================================
+        fields = (
+            'id', 
+            'diagnostico_id',  # <-- NUEVO CAMPO AGREGADO
+            'paciente', 
+            'paciente_nombre', 
+            'paciente_identificacion',
+            'fecha', 
+            'clase', 
+            'categoria', 
+            'confianza', 
+            'probabilidades', 
+            'imagen', 
+            'codigo_cie10'
+        )
+        # ============================================
+        # SE AGREGA 'diagnostico_id' A LOS CAMPOS DE SOLO LECTURA
+        # ============================================
+        read_only_fields = (
+            'id', 
+            'fecha', 
+            'diagnostico_id'  # <-- NUEVO CAMPO AGREGADO (no se puede editar)
+        )

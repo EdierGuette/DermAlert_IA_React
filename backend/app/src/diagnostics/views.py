@@ -103,6 +103,35 @@ def map_clase_to_categoria(clase_nombre):
         return 'Maligno'
     return 'Desconocido'
 
+# ============================================
+# FUNCIÓN AUXILIAR PARA GENERAR ID DE DIAGNÓSTICO
+# ============================================
+
+def generar_diagnostico_id():
+    """
+    Genera el próximo ID de diagnóstico en formato DA-XXXXXX.
+    Ejemplos: DA-000001, DA-000002, DA-000003, etc.
+    Esta función garantiza que el ID sea único y secuencial,
+    independientemente de si se eliminan registros anteriores.
+    """
+    # Obtiene el último diagnóstico creado, ordenado por el ID auto-incremental (id)
+    # Esto asegura que el número secuencial no se vea afectado por eliminaciones
+    ultimo_diagnostico = Diagnostico.objects.all().order_by('-id').first()
+    
+    if ultimo_diagnostico and ultimo_diagnostico.diagnostico_id:
+        # Extrae el número del último ID (ej. "DA-000005" -> 5)
+        try:
+            ultimo_numero = int(ultimo_diagnostico.diagnostico_id.split('-')[1])
+            nuevo_numero = ultimo_numero + 1
+        except (IndexError, ValueError):
+            # Si hay un error al parsear, empezamos desde 1
+            nuevo_numero = 1
+    else:
+        # Si no hay diagnósticos, empezamos desde 1
+        nuevo_numero = 1
+    
+    # Formatea el número con 6 dígitos (ej. 1 -> "000001")
+    return f"DA-{nuevo_numero:06d}"
 
 # ============================================
 # API VIEWS - AUTH
@@ -315,8 +344,14 @@ def api_predict(request):
         image.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
         
-        # Guardar diagnóstico
+        # ============================================
+        # GENERAR EL NUEVO ID DEL DIAGNÓSTICO
+        # ============================================
+        nuevo_id = generar_diagnostico_id()
+        
+        # Guardar diagnóstico con el nuevo ID
         diagnostico = Diagnostico.objects.create(
+            diagnostico_id=nuevo_id,  # <-- NUEVO CAMPO
             paciente=user,
             clase=predicted_class,
             categoria=categoria,
@@ -330,7 +365,8 @@ def api_predict(request):
         
         log('INFO', 'PREDICT', f'Predicción completada', {
             'usuario': user.identificacion,
-            'diagnostico_id': diagnostico.id,
+            'diagnostico_id': diagnostico.diagnostico_id,  # <-- USA EL NUEVO ID
+            'diagnostico_id_num': diagnostico.id,
             'clase': predicted_class,
             'categoria': categoria,
             'confianza': confidence,
@@ -341,11 +377,12 @@ def api_predict(request):
         Auditoria.objects.create(
             usuario=user,
             accion='Análisis de imagen',
-            detalles={'diagnostico_id': diagnostico.id, 'clase': predicted_class, 'categoria': categoria}
+            detalles={'diagnostico_id': diagnostico.diagnostico_id, 'clase': predicted_class, 'categoria': categoria}
         )
         
         return Response({
             'id': diagnostico.id,
+            'diagnostico_id': diagnostico.diagnostico_id,  # <-- INCLUYE EL NUEVO ID EN LA RESPUESTA
             'probabilities': probs,
             'predicted_index': index,
             'predicted_class': predicted_class,
@@ -391,7 +428,7 @@ def api_diagnosticos(request):
 def api_diagnostico_by_id(request, id):
     user = request.user
     
-    log('INFO', 'DIAGNOSTICO', f'Buscando diagnóstico ID:{id} - Usuario: {user.identificacion}')
+    log('INFO', 'DIAGNOSTICO', f'Buscando diagnóstico por ID numérico: {id} - Usuario: {user.identificacion}')
     
     try:
         if user.rol in ['medico', 'administrador']:
@@ -399,11 +436,11 @@ def api_diagnostico_by_id(request, id):
         else:
             diagnostico = Diagnostico.objects.get(id=id, paciente=user)
         
-        log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado ID:{id}')
+        log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado ID numérico: {id}')
         serializer = DiagnosticoSerializer(diagnostico)
         return Response(serializer.data)
     except Diagnostico.DoesNotExist:
-        log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado ID:{id}')
+        log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado ID numérico: {id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
 
 
@@ -412,7 +449,7 @@ def api_diagnostico_by_id(request, id):
 def api_delete_diagnostico(request, id):
     user = request.user
     
-    log('INFO', 'DIAGNOSTICO', f'Intento de eliminación - Diagnóstico ID:{id}, Usuario: {user.identificacion}')
+    log('INFO', 'DIAGNOSTICO', f'Intento de eliminación - ID numérico: {id}, Usuario: {user.identificacion}')
     
     try:
         if user.rol in ['medico', 'administrador']:
@@ -420,19 +457,22 @@ def api_delete_diagnostico(request, id):
         else:
             diagnostico = Diagnostico.objects.get(id=id, paciente=user)
         
+        # Guardar el ID formateado para el log antes de eliminar
+        diagnostico_id_formateado = diagnostico.diagnostico_id
+        
         diagnostico.delete()
         
-        log('INFO', 'DIAGNOSTICO', f'Eliminación exitosa - Diagnóstico ID:{id}')
+        log('INFO', 'DIAGNOSTICO', f'Eliminación exitosa - Diagnóstico ID: {diagnostico_id_formateado}')
         
         Auditoria.objects.create(
             usuario=user,
             accion='Eliminación de diagnóstico',
-            detalles={'diagnostico_id': id}
+            detalles={'diagnostico_id': diagnostico_id_formateado}
         )
         
         return Response({'message': 'Diagnóstico eliminado correctamente'})
     except Diagnostico.DoesNotExist:
-        log('WARNING', 'DIAGNOSTICO', f'Eliminación fallida - Diagnóstico no encontrado ID:{id}')
+        log('WARNING', 'DIAGNOSTICO', f'Eliminación fallida - Diagnóstico no encontrado ID numérico: {id}')
         return Response({'error': 'Diagnóstico no encontrado'}, status=404)
 
 
@@ -446,16 +486,19 @@ def api_search_diagnosticos(request):
     log('INFO', 'DIAGNOSTICO', f'Búsqueda - Tipo: {search_type}, Valor: {value}, Usuario: {user.identificacion}')
     
     if search_type == 'id':
+        # ============================================
+        # BUSCAR POR EL NUEVO ID FORMATEADO (DA-XXXXXX)
+        # ============================================
         try:
             if user.rol in ['medico', 'administrador']:
-                diagnostico = Diagnostico.objects.get(id=value)
+                diagnostico = Diagnostico.objects.get(diagnostico_id=value)
             else:
-                diagnostico = Diagnostico.objects.get(id=value, paciente=user)
+                diagnostico = Diagnostico.objects.get(diagnostico_id=value, paciente=user)
             serializer = DiagnosticoSerializer(diagnostico)
-            log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado por ID: {value}')
+            log('INFO', 'DIAGNOSTICO', f'Diagnóstico encontrado por ID formateado: {value}')
             return Response(serializer.data)
         except Diagnostico.DoesNotExist:
-            log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado por ID: {value}')
+            log('WARNING', 'DIAGNOSTICO', f'Diagnóstico no encontrado por ID formateado: {value}')
             return Response({'error': 'Diagnóstico no encontrado'}, status=404)
     
     elif search_type == 'cedula' and user.rol in ['medico', 'administrador']:

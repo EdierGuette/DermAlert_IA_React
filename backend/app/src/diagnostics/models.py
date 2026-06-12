@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.core.validators import RegexValidator
 import json
 
 class Usuario(AbstractUser):
@@ -63,9 +64,23 @@ class Diagnostico(models.Model):
     
     # Código CIE-10
     codigo_cie10 = models.CharField(max_length=10, blank=True, null=True, help_text="Código CIE-10 de la lesión")
+    
+    # ============================================
+    # NUEVO CAMPO: ID personalizado para el diagnóstico
+    # Formato: DA-000001, DA-000002, etc.
+    # ============================================
+    diagnostico_id = models.CharField(
+        max_length=10,  # Suficiente para "DA-999999"
+        unique=True,
+        editable=False,  # No se edita manualmente
+        validators=[RegexValidator(r'^DA-\d{6}$', 'El ID debe tener el formato DA-XXXXXX (ej. DA-000001)')],
+        help_text="ID único del diagnóstico en formato DA-XXXXXX",
+        null=False,  # No puede ser nulo
+        blank=False,  # No puede estar en blanco
+    )
 
     def __str__(self):
-        return f"Diagnóstico {self.id} - {self.paciente} - {self.clase} ({self.categoria}) - CIE-10: {self.codigo_cie10}"
+        return f"Diagnóstico {self.diagnostico_id} - {self.paciente} - {self.clase} ({self.categoria}) - CIE-10: {self.codigo_cie10}"
 
 
 class Auditoria(models.Model):
